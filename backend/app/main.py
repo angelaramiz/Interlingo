@@ -2,6 +2,9 @@ from fastapi import Depends, FastAPI, HTTPException, Query
 from fastapi.staticfiles import StaticFiles
 from sqlalchemy.orm import Session
 
+from pathlib import Path
+import json as jsonlib
+
 from .database import Base, engine, get_db
 from .models import AppVersion, Evaluacion, Meta, Nivel, Usuario
 from .schemas import (
@@ -34,6 +37,12 @@ app.mount("/static", StaticFiles(directory="static"), name="static")
 @app.get("/api/app-version", response_model=AppVersionResponse)
 def app_version(app: str = Query(default=""), db: Session = Depends(get_db)):
     key = f"app_version_{app}" if app else "app_version"
+    version_file = Path(__file__).resolve().parent.parent / "static" / "version.json"
+    if version_file.is_file():
+        try:
+            return AppVersionResponse(**jsonlib.loads(version_file.read_text(encoding="utf-8")))
+        except (ValueError, TypeError):
+            pass
     row = db.get(AppVersion, key)
     if row and row.valor:
         return AppVersionResponse(**row.valor)
