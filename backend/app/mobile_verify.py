@@ -334,6 +334,17 @@ _RELEASE_KWS = [
 ]
 
 
+def _fun_body(text: str, fun_sig: str) -> str:
+    start = text.find(fun_sig)
+    if start == -1:
+        return ""
+    body = text[start:]
+    nxt = body.find("\n    fun ", len(fun_sig))
+    if nxt != -1:
+        body = body[:nxt]
+    return body
+
+
 def check_ota(root: str | Path) -> list[MobileCheckResult]:
     base = Path(root)
     results = []
@@ -370,6 +381,16 @@ def check_ota(root: str | Path) -> list[MobileCheckResult]:
     ry = _find(base, "render.yaml")
     results.append(_ok("ota.render", ry is not None,
                        "render.yaml present" if ry else "render.yaml missing"))
+    um_text = _read(_find(base, "UpdateManager.kt"))
+    check_src = _fun_body(um_text, "fun checkForUpdate")
+    ok_ = "60000" in check_src
+    results.append(_ok("ota.update.check-timeout-60s", ok_,
+                       "checkForUpdate tolera cold start (60s)" if ok_
+                       else "checkForUpdate sin timeout de 60s"))
+    ok_ = "Release requiere -ServerUrl" in rel_text
+    results.append(_ok("ota.release.serverurl-required", ok_,
+                       "release exige -ServerUrl" if ok_
+                       else "release.ps1 sin guardrail de -ServerUrl"))
     return results
 
 

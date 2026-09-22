@@ -56,6 +56,11 @@ function Write-Fail {
     Write-Host "  FALLO $Message" -ForegroundColor Red
 }
 
+if ($BuildType -eq "release" -and -not $ServerUrl -and -not $SkipBuild) {
+    Write-Fail "Release requiere -ServerUrl (el APK habla con el servidor real, no con el emulador)"
+    exit 1
+}
+
 # ─── Paso 1: Build ───
 $apkPath = ""
 if (-not $SkipBuild) {

@@ -296,6 +296,14 @@ class TestOta:
         for kw in ("assembleRelease", "appVersionCode", "serverUrl", "set_version", "render.yaml"):
             assert kw in details, kw
 
+    def test_update_timeouts_cold_start_safe(self):
+        results = {r.name: r for r in check_ota(ROOT)}
+        assert results["ota.update.check-timeout-60s"].passed
+
+    def test_release_requires_serverurl(self):
+        results = {r.name: r for r in check_ota(ROOT)}
+        assert results["ota.release.serverurl-required"].passed
+
     def test_empty_dir_reported(self, tmp_path):
         assert any(not r.passed for r in check_ota(tmp_path))
 

@@ -42,8 +42,8 @@ object UpdateManager {
     suspend fun checkForUpdate(serverUrl: String): AppVersionInfo? =
         withContext(Dispatchers.IO) {
             val conn = URL("$serverUrl/api/app-version").openConnection() as HttpURLConnection
-            conn.connectTimeout = 10000
-            conn.readTimeout = 10000
+            conn.connectTimeout = 15000
+            conn.readTimeout = 60000
             conn.connect()
             if (conn.responseCode != HttpURLConnection.HTTP_OK) return@withContext null
             val body = conn.inputStream.bufferedReader().use { it.readText() }

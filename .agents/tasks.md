@@ -52,6 +52,8 @@
 - [x] Hook de Render integrado en `release.ps1` (`-RenderHookUrl`, secreto solo por parámetro)
 - [x] Fix BOM en `version.json` (leía default por `json.loads` + BOM; ahora `utf-8-sig` y escritura sin BOM)
 - [x] OTA verificado en producción: `interlingo.onrender.com/api/app-version` → v0.2.0 + APK GitHub
+- [x] Fix "Sin conexión" (TDD): v0.2.0 llevaba SERVER_URL de emulador; v0.2.1 con URL real + timeouts 60s + guardrail `-ServerUrl` obligatorio en release
+- [x] Release v0.2.1 (code 3) publicado y verificado e2e
 - [ ] Probar OTA en dispositivo físico
 - [ ] Probar OTA en dispositivo físico
 
