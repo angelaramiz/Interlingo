@@ -49,6 +49,28 @@ def app_version(app: str = Query(default=""), db: Session = Depends(get_db)):
     return AppVersionResponse()
 
 
+@app.get("/api/debug-version")
+def debug_version():
+    import sys
+
+    base = Path(__file__).resolve().parent.parent
+    vf = base / "static" / "version.json"
+    info = {
+        "python": sys.version.split()[0],
+        "cwd": str(Path.cwd()),
+        "base": str(base),
+        "version_file": str(vf),
+        "exists": vf.is_file(),
+        "static_dir": sorted(p.name for p in (base / "static").iterdir()) if (base / "static").is_dir() else None,
+    }
+    if vf.is_file():
+        try:
+            info["content"] = vf.read_text(encoding="utf-8")[:300]
+        except OSError as e:
+            info["read_error"] = str(e)
+    return info
+
+
 @app.post("/api/meta")
 def crear_meta(payload: MetaCreate, db: Session = Depends(get_db)):
     usuario = Usuario(idioma_objetivo=payload.idioma_objetivo, idioma_nativo=payload.idioma_nativo)
