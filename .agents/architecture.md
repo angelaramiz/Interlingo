@@ -1,4 +1,4 @@
-# LengLearning — Arquitectura del Proyecto
+# Interlingo — Arquitectura del Proyecto
 
 ## Concepto
 Plataforma de **aprendizaje de idiomas basado en temas de interés**. El usuario no estudia el idioma con frases genéricas; aprende el idioma leyendo, respondiendo y creando contenido sobre temas que le interesan (ej: ETL, SaaS, finanzas, cocina).

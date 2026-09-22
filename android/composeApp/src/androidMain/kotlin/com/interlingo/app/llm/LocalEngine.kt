@@ -1,14 +1,14 @@
-package com.lenglearning.app.llm
+package com.interlingo.app.llm
 
-import com.lenglearning.app.data.LearningApi
-import com.lenglearning.app.model.DiagnosticoPregunta
-import com.lenglearning.app.model.DiagnosticoResultado
-import com.lenglearning.app.model.EvaluacionResponse
-import com.lenglearning.app.model.EvaluacionResultado
-import com.lenglearning.app.model.Leccion
-import com.lenglearning.app.model.MetaResponse
-import com.lenglearning.app.model.Plan
-import com.lenglearning.app.model.PlanNivel
+import com.interlingo.app.data.LearningApi
+import com.interlingo.app.model.DiagnosticoPregunta
+import com.interlingo.app.model.DiagnosticoResultado
+import com.interlingo.app.model.EvaluacionResponse
+import com.interlingo.app.model.EvaluacionResultado
+import com.interlingo.app.model.Leccion
+import com.interlingo.app.model.MetaResponse
+import com.interlingo.app.model.Plan
+import com.interlingo.app.model.PlanNivel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.Serializable

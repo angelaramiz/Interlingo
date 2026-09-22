@@ -1,4 +1,4 @@
-"""Verificacion TDD de la app movil LengLearning (KMP + Compose + on-device).
+"""Verificacion TDD de la app movil Interlingo (KMP + Compose + on-device).
 
 Contrato que verifica:
 - Estructura de ficheros Kotlin + jniLibs + Manifest
@@ -257,8 +257,8 @@ def check_ondevice(root: str | Path) -> list[MobileCheckResult]:
         ("ondevice.manifest.activity", "MainActivity" in manifest, "MainActivity"),
         ("ondevice.gradle.abi", "arm64-v8a" in gradle or "arm64-v8a" in combined,
          "arm64-v8a abiFilters"),
-        ("ondevice.gradle.pkg", "com.lenglearning.app" in combined,
-         "com.lenglearning.app"),
+        ("ondevice.gradle.pkg", "com.interlingo.app" in combined,
+         "com.interlingo.app"),
         ("ondevice.model.url",
          "huggingface" in main.lower() or "gguf" in main.lower(),
          "huggingface GGUF Qwen3-4B-Instruct-2507-Q4_K_M.gguf"),
@@ -322,7 +322,7 @@ _OTA_BACKEND_KWS = [
     "/api/app-version",
     "StaticFiles",
     "AppVersionResponse",
-    "/static/lenglearning.apk",
+    "/static/interlingo.apk",
 ]
 _RELEASE_KWS = [
     "assembleRelease",
@@ -330,7 +330,7 @@ _RELEASE_KWS = [
     "appVersionName",
     "serverUrl",
     "set_version",
-    "lenglearning.apk",
+    "interlingo.apk",
 ]
 
 
@@ -390,7 +390,7 @@ def verify_mobile_app(root: str | Path | None = None) -> MobileReport:
 
 
 def format_report(report: MobileReport) -> str:
-    lines = [f"LengLearning mobile verification: "
+    lines = [f"Interlingo mobile verification: "
              f"{report.passed}/{report.total} passed"]
     if not report.results:
         lines.append("no checks ran")

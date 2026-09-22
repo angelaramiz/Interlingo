@@ -14,4 +14,4 @@
 - [ ] ¿Se inicializa repositorio git ahora?
 - [ ] ¿Dónde se guardan las claves de API? (env / config)
 - [x] ¿Versión mínima de Android / min SDK? → minSdk 26 (compileSdk/targetSdk 35)
-- [x] ¿Paquete base de la app? → com.lenglearning.app
+- [x] ¿Paquete base de la app? → com.interlingo.app

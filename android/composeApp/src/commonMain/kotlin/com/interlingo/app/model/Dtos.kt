@@ -1,4 +1,4 @@
-package com.lenglearning.app.model
+package com.interlingo.app.model
 
 import kotlinx.serialization.Serializable
 

@@ -1,4 +1,4 @@
-package com.lenglearning.app.llm
+package com.interlingo.app.llm
 
 class LlmEngine private constructor() {
     companion object {

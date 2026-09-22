@@ -1,7 +1,7 @@
-# release.ps1 — Pipeline unificado LengLearning: build → deploy → DB → verify
+# release.ps1 — Pipeline unificado Interlingo: build → deploy → DB → verify
 #
 # Uso:
-#   ./release.ps1 -VersionCode 2 -VersionName "0.2.0" -ServerUrl "https://lenglearning-api.onrender.com"
+#   ./release.ps1 -VersionCode 2 -VersionName "0.2.0" -ServerUrl "https://interlingo-api.onrender.com"
 #   ./release.ps1 -VersionCode 2 -VersionName "0.2.0" -ServerUrl "..." -KeystorePassword "xxx" -KeyPassword "xxx"
 #   ./release.ps1 -VersionCode 2 -VersionName "0.2.0" -BuildType debug
 #   ./release.ps1 -VersionCode 2 -VersionName "0.2.0" -SkipBuild   # APK ya compilado
@@ -31,7 +31,7 @@ param(
 
 $ErrorActionPreference = "Stop"
 $Root = $PSScriptRoot
-$ApkName = "lenglearning.apk"
+$ApkName = "interlingo.apk"
 $DbKey = "app_version"
 
 function Write-Step {
@@ -125,7 +125,7 @@ Write-Ok "Copiado a backend/static/$ApkName"
 
 # ─── Paso 3: DB (SQLite app_versions) ───
 Write-Step "3/4 DB"
-$dbPath = Join-Path $Root "backend/lenglearning.db"
+$dbPath = Join-Path $Root "backend/interlingo.db"
 $py = Join-Path $Root "backend/.venv/Scripts/python.exe"
 if (-not (Test-Path $py)) {
     $py = "python"

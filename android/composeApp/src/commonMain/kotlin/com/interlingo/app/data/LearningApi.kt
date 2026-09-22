@@ -1,11 +1,11 @@
-package com.lenglearning.app.data
+package com.interlingo.app.data
 
-import com.lenglearning.app.model.DiagnosticoPregunta
-import com.lenglearning.app.model.EvaluacionResponse
-import com.lenglearning.app.model.EvaluacionResultado
-import com.lenglearning.app.model.Leccion
-import com.lenglearning.app.model.MetaResponse
-import com.lenglearning.app.model.Plan
+import com.interlingo.app.model.DiagnosticoPregunta
+import com.interlingo.app.model.EvaluacionResponse
+import com.interlingo.app.model.EvaluacionResultado
+import com.interlingo.app.model.Leccion
+import com.interlingo.app.model.MetaResponse
+import com.interlingo.app.model.Plan
 
 interface LearningApi {
     suspend fun crearMeta(texto: String, idiomaObjetivo: String): MetaResponse

@@ -8,7 +8,7 @@
 - [x] Esqueleto backend: FastAPI + SQLite + motor de prompts + OpenRouter (modelo configurable por env)
 - [x] Esquema SQLite (usuario, meta, niveles, evaluaciones, traza)
 - [x] Proyecto KMP en `android/` (composeApp: commonMain + androidMain) — compila assembleDebug OK
-  - Namespace/paquete: com.lenglearning.app, minSdk 26, compileSdk/targetSdk 35
+  - Namespace/paquete: com.interlingo.app, minSdk 26, compileSdk/targetSdk 35
   - Ktor client + kotlinx.serialization apuntando a backend (10.0.2.2:8000 en emulador)
 
 ### Motor de IA

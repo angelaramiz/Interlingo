@@ -1,4 +1,4 @@
-package com.lenglearning.app.llm
+package com.interlingo.app.llm
 
 object PromptEngine {
     private val languageNames = mapOf(
@@ -14,7 +14,7 @@ object PromptEngine {
         "Responde SOLO con un JSON válido, sin texto adicional, siguiendo exactamente el esquema indicado."
 
     const val systemBase =
-        "Eres LengLearning, un motor adaptativo que enseña un idioma usando " +
+        "Eres Interlingo, un motor adaptativo que enseña un idioma usando " +
         "un tema de interés como vehículo. El tema es el vehículo; el idioma " +
         "es la habilidad principal. Controlas dos rutas de progreso en paralelo: " +
         "ruta de idioma (vocabulario, gramática, comprensión, producción) y ruta " +

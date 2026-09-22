@@ -1,6 +1,6 @@
 services:
   - type: web
-    name: lenglearning-api
+    name: interlingo-api
     runtime: python
     rootDir: backend
     buildCommand: pip install -r requirements.txt

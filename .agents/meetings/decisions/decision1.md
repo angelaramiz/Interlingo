@@ -3,7 +3,7 @@
 **Fecha:** 2026-08-12
 
 ## Decisión
-LengLearning = plataforma de **aprendizaje de idiomas basada en temas de interés**. Aprender un idioma mientras aprendes algo útil.
+Interlingo = plataforma de **aprendizaje de idiomas basada en temas de interés**. Aprender un idioma mientras aprendes algo útil.
 
 ## Detalles
 - El **tema es el vehículo**; el **idioma es la habilidad principal** que se entrena.

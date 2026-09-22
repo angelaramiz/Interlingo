@@ -1,4 +1,4 @@
-package com.lenglearning.app
+package com.interlingo.app
 
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -28,12 +28,12 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.lenglearning.app.data.LearningApi
-import com.lenglearning.app.llm.LlmEngine
-import com.lenglearning.app.llm.LocalEngine
-import com.lenglearning.app.llm.ModelDownloader
-import com.lenglearning.app.update.AppVersionInfo
-import com.lenglearning.app.update.UpdateManager
+import com.interlingo.app.data.LearningApi
+import com.interlingo.app.llm.LlmEngine
+import com.interlingo.app.llm.LocalEngine
+import com.interlingo.app.llm.ModelDownloader
+import com.interlingo.app.update.AppVersionInfo
+import com.interlingo.app.update.UpdateManager
 import java.io.File
 import kotlinx.coroutines.launch
 
@@ -121,7 +121,7 @@ class MainActivity : ComponentActivity() {
                         title = { Text("Nueva versión disponible") },
                         text = {
                             Column {
-                                Text("LengLearning ${info.versionName} está lista para instalar.")
+                                Text("Interlingo ${info.versionName} está lista para instalar.")
                                 val dl = downloadingUpdate
                                 if (dl != null) {
                                     Spacer(Modifier.height(12.dp))
@@ -183,7 +183,7 @@ private fun ModelDownloadScreen(progress: Pair<Long, Long>?) {
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        Text("LengLearning", style = MaterialTheme.typography.headlineLarge)
+        Text("Interlingo", style = MaterialTheme.typography.headlineLarge)
         Spacer(Modifier.height(16.dp))
         Text("Descargando el modelo de IA (solo la primera vez)…")
         Spacer(Modifier.height(16.dp))

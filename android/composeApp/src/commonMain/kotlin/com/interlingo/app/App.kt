@@ -1,4 +1,4 @@
-package com.lenglearning.app
+package com.interlingo.app
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -31,12 +31,12 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.lenglearning.app.data.LearningApi
-import com.lenglearning.app.model.DiagnosticoPregunta
-import com.lenglearning.app.model.EvaluacionResponse
-import com.lenglearning.app.model.EvaluacionResultado
-import com.lenglearning.app.model.Leccion as LeccionModel
-import com.lenglearning.app.model.PlanNivel
+import com.interlingo.app.data.LearningApi
+import com.interlingo.app.model.DiagnosticoPregunta
+import com.interlingo.app.model.EvaluacionResponse
+import com.interlingo.app.model.EvaluacionResultado
+import com.interlingo.app.model.Leccion as LeccionModel
+import com.interlingo.app.model.PlanNivel
 import kotlinx.coroutines.launch
 
 sealed interface UiState {
@@ -220,7 +220,7 @@ private fun HomeScreen(
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        Text(text = "LengLearning", style = MaterialTheme.typography.headlineLarge)
+        Text(text = "Interlingo", style = MaterialTheme.typography.headlineLarge)
         Spacer(Modifier.height(8.dp))
         Text(text = "Aprende un idioma mientras aprendes lo que te interesa")
         Spacer(Modifier.height(24.dp))

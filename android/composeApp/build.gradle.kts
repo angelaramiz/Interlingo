@@ -41,11 +41,11 @@ kotlin {
 }
 
 android {
-    namespace = "com.lenglearning.app"
+    namespace = "com.interlingo.app"
     compileSdk = 35
 
     defaultConfig {
-        applicationId = "com.lenglearning.app"
+        applicationId = "com.interlingo.app"
         minSdk = 26
         targetSdk = 35
         versionCode = (project.findProperty("appVersionCode") as String? ?: "1").toInt()

@@ -1,7 +1,7 @@
 # Historial
 
 ## 2026-08-12 — Definición de concepto y MVP
-- Aprobado el concepto de doble ruta (idioma + tema) para LengLearning.
+- Aprobado el concepto de doble ruta (idioma + tema) para Interlingo.
 - Definidos requisitos técnicos, de diseño del sistema y UX/UI.
 - Documentado el MVP: meta → diagnóstico → lección → evaluación → ajuste.
 - Creada la estructura `.agents/` (memoria y contexto del agente).
@@ -16,7 +16,7 @@
 
 ## 2026-08-12 — App Android (KMP) esqueleto compilado
 - Proyecto Kotlin Multiplatform + Compose Multiplatform en `android/` (módulo composeApp, Android-first).
-- Paquete `com.lenglearning.app`, minSdk 26, compileSdk/targetSdk 35.
+- Paquete `com.interlingo.app`, minSdk 26, compileSdk/targetSdk 35.
 - Cliente Ktor + kotlinx.serialization hacia el backend; pantalla de meta → diagnóstico → plan.
 - `assembleDebug` OK (APK 10.5 MB). Gradle wrapper 8.9, AGP 8.6, Kotlin 2.0.21, CMP 1.7.3.
 

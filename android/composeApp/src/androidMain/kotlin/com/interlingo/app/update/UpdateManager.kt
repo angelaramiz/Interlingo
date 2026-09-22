@@ -1,4 +1,4 @@
-package com.lenglearning.app.update
+package com.interlingo.app.update
 
 import android.content.Context
 import android.content.Intent
@@ -19,7 +19,7 @@ import java.net.URL
 data class AppVersionInfo(
     val versionCode: Int = 1,
     val versionName: String = "0.1.0",
-    val apkUrl: String = "/static/lenglearning.apk",
+    val apkUrl: String = "/static/interlingo.apk",
 )
 
 object UpdateManager {
@@ -62,7 +62,7 @@ object UpdateManager {
     suspend fun downloadApk(
         context: Context,
         apkUrl: String,
-        fileName: String = "lenglearning.apk",
+        fileName: String = "interlingo.apk",
         onProgress: (downloadedBytes: Long, totalBytes: Long) -> Unit,
     ): File = withContext(Dispatchers.IO) {
         val conn = URL(apkUrl).openConnection() as HttpURLConnection

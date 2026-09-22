@@ -1,4 +1,4 @@
-# Skills del Proyecto — LengLearning
+# Skills del Proyecto — Interlingo
 
 Skills planificadas (cada una con su `SKILL.md` en `.agents/skill/<nombre>/`):
 

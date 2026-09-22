@@ -1,4 +1,4 @@
-"""Suite TDD (fase RED) — verificacion de la app movil LengLearning.
+"""Suite TDD (fase RED) — verificacion de la app movil Interlingo.
 
 Cubre: estructura, LearningApi, ApiClient, DTOs, flujo UI (App.kt),
 on-device (JNI/LocalEngine/Prompts/Manifest/Gradle/.so) y contrato backend.
@@ -22,14 +22,14 @@ from app.mobile_verify import (
     verify_mobile_app,
 )
 
-ROOT = Path(__file__).resolve().parents[2]  # LengLearning/
+ROOT = Path(__file__).resolve().parents[2]  # Interlingo/
 
 
 # ---------- project_root ----------
 
 class TestProjectRoot:
-    def test_resolves_to_lenglearning_dir(self):
-        assert project_root().name == "LengLearning"
+    def test_resolves_to_interlingo_dir(self):
+        assert project_root().name == "Interlingo"
 
     def test_explicit_path_is_honored(self):
         assert project_root(str(ROOT)) == ROOT
@@ -90,7 +90,7 @@ class TestLearningApi:
 
     def test_missing_method_is_reported(self, tmp_path):
         src = tmp_path / "LearningApi.kt"
-        src.write_text("package com.lenglearning.app.data\ninterface LearningApi {\n"
+        src.write_text("package com.interlingo.app.data\ninterface LearningApi {\n"
                        "suspend fun crearMeta(texto: String): Int\n}\n",
                        encoding="utf-8")
         results = check_learning_api(tmp_path)
@@ -155,7 +155,7 @@ class TestDtos:
         assert "Serializable" in details
 
     def test_empty_dtos_reported(self, tmp_path):
-        (tmp_path / "Dtos.kt").write_text("package com.lenglearning.app.model\n", encoding="utf-8")
+        (tmp_path / "Dtos.kt").write_text("package com.interlingo.app.model\n", encoding="utf-8")
         assert any(not r.passed for r in check_dtos(tmp_path))
 
 
@@ -194,7 +194,7 @@ class TestAppFlow:
         assert "Error" in details and ("try" in details or "catch" in details)
 
     def test_truncated_app_flow_reported(self, tmp_path):
-        (tmp_path / "App.kt").write_text("package com.lenglearning.app\nfun App() {}\n",
+        (tmp_path / "App.kt").write_text("package com.interlingo.app\nfun App() {}\n",
                                           encoding="utf-8")
         assert any(not r.passed for r in check_app_flow(tmp_path))
 
@@ -235,7 +235,7 @@ class TestOnDevice:
         assert "INTERNET" in details
         assert "MainActivity" in details
         assert "arm64-v8a" in details
-        assert "com.lenglearning.app" in details
+        assert "com.interlingo.app" in details
 
     def test_native_libs_present(self):
         details = " ".join(r.detail for r in check_ondevice(ROOT))
@@ -322,7 +322,7 @@ class TestVerifyMobileApp:
     def test_format_report_summary(self):
         report = verify_mobile_app(ROOT)
         text = format_report(report)
-        assert "LengLearning" in text
+        assert "Interlingo" in text
         assert str(report.total) in text
         assert "PASS" in text or "OK" in text or "passed" in text.lower()
 

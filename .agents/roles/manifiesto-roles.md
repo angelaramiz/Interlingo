@@ -1,4 +1,4 @@
-# Roles del Proyecto — LengLearning
+# Roles del Proyecto — Interlingo
 
 ## Agente (copiloto)
 - **Arquitecto técnico**: propone stack, modelo de datos y estructura del MVP.

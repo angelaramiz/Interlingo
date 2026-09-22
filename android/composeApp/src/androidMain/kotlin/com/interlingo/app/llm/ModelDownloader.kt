@@ -1,4 +1,4 @@
-package com.lenglearning.app.llm
+package com.interlingo.app.llm
 
 import java.io.File
 import java.net.HttpURLConnection

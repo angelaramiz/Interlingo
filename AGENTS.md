@@ -1,4 +1,4 @@
-# AGENTS.md — LengLearning
+# AGENTS.md — Interlingo
 
 Language-learning-by-topic app. Two halves: `backend/` (FastAPI + SQLite, AI content engine) and `android/` (Kotlin Multiplatform + Compose, Android-first, on-device inference via bundled llama.cpp). They share one contract: `LearningApi` in `android/.../commonMain/.../data/LearningApi.kt` mirrors the 7 backend routes.
 
@@ -34,9 +34,9 @@ cd android
 .\gradlew.bat :composeApp:assembleDebug --no-daemon
 # APK: android/composeApp/build/outputs/apk/debug/composeApp-debug.apk
 ```
-- Versions (all in `android/gradle/libs.versions.toml`): Gradle 8.9, AGP 8.6.0, Kotlin 2.0.21, Compose Multiplatform 1.7.3. `applicationId`/namespace `com.lenglearning.app`, minSdk 26, compileSdk/targetSdk 35.
+- Versions (all in `android/gradle/libs.versions.toml`): Gradle 8.9, AGP 8.6.0, Kotlin 2.0.21, Compose Multiplatform 1.7.3. `applicationId`/namespace `com.interlingo.app`, minSdk 26, compileSdk/targetSdk 35.
 - `abiFilters = arm64-v8a` only. Consequence: the stock x86_64 emulator CANNOT load the native libs — test on a physical arm64 device.
-- JNI names are coupled: Kotlin `com.lenglearning.app.llm.LlmEngine.native*` ↔ C `Java_com_lenglearning_app_llm_LlmEngine_native*` in `D:\build\bridge\bridge.cpp`. Renaming the package/class breaks the bridge silently at runtime (`UnsatisfiedLinkError`).
+- JNI names are coupled: Kotlin `com.interlingo.app.llm.LlmEngine.native*` ↔ C `Java_com_interlingo_app_llm_LlmEngine_native*` in `D:\build\bridge\bridge.cpp`. Renaming the package/class breaks the bridge silently at runtime (`UnsatisfiedLinkError`).
 - If the LLM feature is ever removed, remove ALL native traces together (`jniLibs/`, `externalNativeBuild` if added, `System.loadLibrary`) — leftovers break the build even when unused.
 - On-device prompts are a port of `backend/app/ai/prompts.py` (`PromptEngine.kt`). Change a template in one place, change it in both.
 - `MainActivity` downloads `Qwen3-4B-Instruct-2507-Q4_K_M.gguf` (~2.3 GB) from the public unsloth HF URL in `MainActivity.kt` to `filesDir/models/` on first launch. Do NOT bundle the GGUF in `assets/`/`res/raw`.
@@ -49,7 +49,7 @@ cd android
 .\release.ps1 -VersionCode 2 -VersionName "0.2.0" -ServerUrl "https://<tu-api>.onrender.com" -KeystorePassword "..." -KeyPassword "..."
 ```
 
-- Pipeline: `:composeApp:assembleRelease` (signed) → copy APK to `backend/static/lenglearning.apk` → upsert `app_versions` in SQLite (`backend/scripts/set_version.py`) → `GET {ServerUrl}/api/app-version` verify.
+- Pipeline: `:composeApp:assembleRelease` (signed) → copy APK to `backend/static/interlingo.apk` → upsert `app_versions` in SQLite (`backend/scripts/set_version.py`) → `GET {ServerUrl}/api/app-version` verify.
 - `versionCode`/`versionName`/`SERVER_URL` come from Gradle props (`-PappVersionCode`, `-PappVersionName`, `-PserverUrl`), NOT from editing `build.gradle.kts`. The app reads its own `versionCode` via `PackageManager` to compare against `/api/app-version`.
 - PowerShell→`gradlew.bat` quirk: quote EVERY `-P` arg (`"-PappVersionCode=2"`), otherwise values with dots split into bogus tasks (e.g. `Task '.2.0' not found`).
 - Signing via `-Pandroid.injected.signing.*` props. Keystore lives in `android/keystore/` (gitignored); passwords only as CLI params, never in the repo.

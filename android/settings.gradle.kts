@@ -1,4 +1,4 @@
-rootProject.name = "LengLearning"
+rootProject.name = "Interlingo"
 
 pluginManagement {
     repositories {

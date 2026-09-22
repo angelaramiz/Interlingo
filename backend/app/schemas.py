@@ -75,4 +75,4 @@ class EvaluacionResultado(BaseModel):
 class AppVersionResponse(BaseModel):
     versionCode: int = 1
     versionName: str = "0.1.0"
-    apkUrl: str = "/static/lenglearning.apk"
+    apkUrl: str = "/static/interlingo.apk"

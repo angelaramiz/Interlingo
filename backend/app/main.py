@@ -26,7 +26,7 @@ from .services.planner import generar_plan, listar_niveles
 
 Base.metadata.create_all(bind=engine)
 
-app = FastAPI(title="LengLearning API", version="0.1.0")
+app = FastAPI(title="Interlingo API", version="0.1.0")
 
 app.mount("/static", StaticFiles(directory="static"), name="static")
 

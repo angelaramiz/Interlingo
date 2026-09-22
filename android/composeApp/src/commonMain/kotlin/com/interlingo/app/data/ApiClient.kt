@@ -1,15 +1,15 @@
-package com.lenglearning.app.data
+package com.interlingo.app.data
 
-import com.lenglearning.app.model.DiagnosticoPregunta
-import com.lenglearning.app.model.DiagnosticoResultado
-import com.lenglearning.app.model.DiagnosticoRespuestas
-import com.lenglearning.app.model.EvaluacionResponse
-import com.lenglearning.app.model.EvaluacionResultado
-import com.lenglearning.app.model.EvaluacionSubmit
-import com.lenglearning.app.model.Leccion
-import com.lenglearning.app.model.MetaRequest
-import com.lenglearning.app.model.MetaResponse
-import com.lenglearning.app.model.Plan
+import com.interlingo.app.model.DiagnosticoPregunta
+import com.interlingo.app.model.DiagnosticoResultado
+import com.interlingo.app.model.DiagnosticoRespuestas
+import com.interlingo.app.model.EvaluacionResponse
+import com.interlingo.app.model.EvaluacionResultado
+import com.interlingo.app.model.EvaluacionSubmit
+import com.interlingo.app.model.Leccion
+import com.interlingo.app.model.MetaRequest
+import com.interlingo.app.model.MetaResponse
+import com.interlingo.app.model.Plan
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation

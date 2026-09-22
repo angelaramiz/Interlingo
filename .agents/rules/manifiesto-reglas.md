@@ -1,4 +1,4 @@
-# Reglas del Proyecto — LengLearning
+# Reglas del Proyecto — Interlingo
 
 ## Lenguaje y contenido
 - El contenido educativo (textos, preguntas, feedback) siempre en el **idioma objetivo** de la lección.
