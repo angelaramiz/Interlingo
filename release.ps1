@@ -30,6 +30,8 @@ param(
 
     [string]$GithubRepo = "angelaramiz/Interlingo",
 
+    [string]$RenderHookUrl = "",
+
     [switch]$KeepLocalApk
 )
 
@@ -185,8 +187,18 @@ try {
     Pop-Location
 }
 
-# ─── Paso 4: Verify (espera al redeploy de Render) ───
-Write-Step "4/4 VERIFY"
+# ─── Paso 4: Deploy en Render + Verify ───
+Write-Step "4/4 RENDER + VERIFY"
+if ($RenderHookUrl) {
+    try {
+        Invoke-RestMethod -Uri $RenderHookUrl -Method POST -TimeoutSec 30 | Out-Null
+        Write-Ok "Redeploy de Render disparado vía hook"
+    } catch {
+        Write-Host "  Aviso: el hook de Render falló: $($_.Exception.Message)" -ForegroundColor Yellow
+    }
+} else {
+    Write-Host "  Sin -RenderHookUrl: se confía en el autodeploy por push (más lento)" -ForegroundColor Gray
+}
 if (-not $ServerUrl) {
     Write-Host "  Omitido (sin -ServerUrl). Verificar manual: GET /api/app-version" -ForegroundColor Yellow
 } else {
