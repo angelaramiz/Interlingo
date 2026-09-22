@@ -47,6 +47,8 @@
 - [x] Verificador TDD extendido con checks OTA (60/60, 100% cobertura)
 - [x] Crear servicio web en Render (pendiente del desarrollador — ver input.md)
 - [x] Fix deploy Render: `PYTHON_VERSION=3.12.6` (pydantic 2.9.2 no tiene wheel para Python 3.14)
+- [x] Backup `backend/.python-version` (=3.12) por si el yaml se ignora
+- [ ] Fijar `PYTHON_VERSION=3.12.6` en dashboard de Render (servicio manual ignora render.yaml) — pendiente del desarrollador
 - [x] Hook de Render integrado en `release.ps1` (`-RenderHookUrl`, secreto solo por parámetro)
 - [ ] Probar OTA en dispositivo físico
 
