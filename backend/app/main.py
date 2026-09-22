@@ -34,6 +34,11 @@ app = FastAPI(title="Interlingo API", version="0.1.0")
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
 
+@app.get("/api/health")
+def health():
+    return {"status": "ok"}
+
+
 @app.get("/api/app-version", response_model=AppVersionResponse)
 def app_version(app: str = Query(default=""), db: Session = Depends(get_db)):
     key = f"app_version_{app}" if app else "app_version"

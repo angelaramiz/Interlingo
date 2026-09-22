@@ -65,9 +65,16 @@ class MainActivity : ComponentActivity() {
                 fun doCheckUpdate(manual: Boolean) {
                     if (checkingUpdate) return
                     checkingUpdate = true
-                    if (manual) updateStatus = "Buscando actualización…"
+                    if (manual) updateStatus = "Despertando servidor…"
                     scope.launch {
                         try {
+                            val awake = UpdateManager.wakeUp(serverUrl) { attempt ->
+                                if (manual) updateStatus = "Despertando servidor… (intento $attempt)"
+                            }
+                            if (!awake) {
+                                if (manual) updateStatus = "No se pudo contactar al servidor"
+                                return@launch
+                            }
                             val latest = UpdateManager.checkForUpdate(serverUrl)
                             val local = UpdateManager.getLocalVersionCode(this@MainActivity)
                             if (latest != null && latest.versionCode > local) {

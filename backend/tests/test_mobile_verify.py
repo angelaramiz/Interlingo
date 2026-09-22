@@ -304,6 +304,14 @@ class TestOta:
         results = {r.name: r for r in check_ota(ROOT)}
         assert results["ota.release.serverurl-required"].passed
 
+    def test_wakeup_with_retries(self):
+        results = {r.name: r for r in check_ota(ROOT)}
+        assert results["ota.update.wakeup"].passed
+
+    def test_backend_health_route(self):
+        results = {r.name: r for r in check_ota(ROOT)}
+        assert results["ota.backend.health"].passed
+
     def test_empty_dir_reported(self, tmp_path):
         assert any(not r.passed for r in check_ota(tmp_path))
 

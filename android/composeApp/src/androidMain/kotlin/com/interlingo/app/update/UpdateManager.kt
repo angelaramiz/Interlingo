@@ -8,6 +8,7 @@ import android.os.Build
 import android.os.Environment
 import androidx.core.content.FileProvider
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
@@ -37,6 +38,32 @@ object UpdateManager {
         } catch (e: Exception) {
             1
         }
+    }
+
+    suspend fun wakeUp(
+        serverUrl: String,
+        maxWaitMs: Long = 180000,
+        onAttempt: (Int) -> Unit = {},
+    ): Boolean = withContext(Dispatchers.IO) {
+        val start = System.currentTimeMillis()
+        var attempt = 0
+        while (System.currentTimeMillis() - start < maxWaitMs) {
+            attempt++
+            onAttempt(attempt)
+            try {
+                val conn = URL("$serverUrl/api/health").openConnection() as HttpURLConnection
+                conn.connectTimeout = 15000
+                conn.readTimeout = 20000
+                conn.connect()
+                if (conn.responseCode == HttpURLConnection.HTTP_OK) {
+                    conn.inputStream.close()
+                    return@withContext true
+                }
+            } catch (e: Exception) {
+            }
+            delay(5000)
+        }
+        false
     }
 
     suspend fun checkForUpdate(serverUrl: String): AppVersionInfo? =

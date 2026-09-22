@@ -391,6 +391,17 @@ def check_ota(root: str | Path) -> list[MobileCheckResult]:
     results.append(_ok("ota.release.serverurl-required", ok_,
                        "release exige -ServerUrl" if ok_
                        else "release.ps1 sin guardrail de -ServerUrl"))
+    um_text = _read(_find(base, "UpdateManager.kt"))
+    wake_src = _fun_body(um_text, "fun wakeUp")
+    ok_ = "/api/health" in wake_src and "delay(" in wake_src
+    results.append(_ok("ota.update.wakeup", ok_,
+                       "wakeUp con reintentos a /api/health" if ok_
+                       else "UpdateManager sin wakeUp a /api/health"))
+    main_text = _read(_find(base, "main.py"))
+    ok_ = '"/api/health"' in main_text or "'/api/health'" in main_text
+    results.append(_ok("ota.backend.health", ok_,
+                       "backend expone /api/health" if ok_
+                       else "main.py sin ruta /api/health"))
     return results
 
 
