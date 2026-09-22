@@ -50,16 +50,19 @@ cd android
 .\release.ps1 -VersionCode 2 -VersionName "0.2.0" -ServerUrl "https://<tu-api>.onrender.com" -KeystorePassword "..." -KeyPassword "..."
 ```
 
-- Pipeline: `:composeApp:assembleRelease` (signed) → copy APK to `backend/static/interlingo.apk` → upsert `app_versions` in SQLite (`backend/scripts/set_version.py`) → `GET {ServerUrl}/api/app-version` verify.
+- Pipeline: `:composeApp:assembleRelease` (signed) → upload APK to GitHub Release → write `version.json` + commit + push → POST Render deploy hook → poll `/api/app-version` until the new `versionCode` answers. (The SQLite upsert via `backend/scripts/set_version.py` still runs, but only matters for local dev — production reads `version.json`.)
+- `release.ps1` REQUIRES `-ServerUrl` for release builds (guardrail: without it the APK bakes in the emulator URL `http://10.0.2.2:8000` and OTA fails on physical devices — this already shipped once as v0.2.0).
 - `versionCode`/`versionName`/`SERVER_URL` come from Gradle props (`-PappVersionCode`, `-PappVersionName`, `-PserverUrl`), NOT from editing `build.gradle.kts`. The app reads its own `versionCode` via `PackageManager` to compare against `/api/app-version`.
 - PowerShell→`gradlew.bat` quirk: quote EVERY `-P` arg (`"-PappVersionCode=2"`), otherwise values with dots split into bogus tasks (e.g. `Task '.2.0' not found`).
 - Signing via `-Pandroid.injected.signing.*` props. Keystore lives in `android/keystore/` (gitignored); passwords only as CLI params, never in the repo.
 - Same secrecy rule for `-RenderHookUrl` (Render deploy-hook key): pass it per-run, never commit it. After push, `release.ps1` POSTs the hook to force the redeploy, then polls `/api/app-version` until the new `versionCode` answers.
 - On-device update flow (`androidMain/.../update/UpdateManager.kt`): silent check on start + manual "Buscar actualización" button; download to external Downloads with `.part`+rename; install via `FileProvider` (`${applicationId}.fileprovider` + `res/xml/file_paths.xml`). Needs `REQUEST_INSTALL_PACKAGES` and the user enabling "install unknown apps".
 - Backend serves APKs from `backend/static/` (`/static/...`). `backend/static/*.apk` is gitignored — the APK lands there only at release time.
-- Version truth is `backend/static/version.json` (committed); `/api/app-version` reads it first, then the `app_versions` SQLite row, then defaults. `release.ps1` writes version.json + commits + pushes (Render redeploys).
+- Version truth is `backend/static/version.json` (committed, MUST be BOM-less: PS 5.1 `Set-Content -Encoding utf8` writes a BOM that breaks `json.loads` → silent fallback to defaults; `release.ps1` writes it via .NET UTF-8-no-BOM). `/api/app-version` reads it first (with `utf-8-sig`), then the `app_versions` SQLite row, then defaults. `GET /api/health` is the cheap wake-up ping (no DB).
 - APK hosting is GitHub Releases (`gh release create/upload`), NOT the repo: `https://github.com/angelaramiz/Interlingo/releases/download/vX.Y.Z/interlingo.apk`. Repo is public so the phone downloads without auth.
 - Render note (`render.yaml`): production uses `AI_PROVIDER=openrouter` (the 2.3 GB local GGUF does not fit Render's disk/RAM). `OPENROUTER_API_KEY` must be set in the Render dashboard.
+- Render service was created MANUALLY, so it IGNORES `render.yaml`: env vars (`PYTHON_VERSION`, keys) must be set in the dashboard, not the yaml. Current production: `https://interlingo.onrender.com` (+ `PYTHON_VERSION=3.12.6`, because the pinned `pydantic==2.9.2` has no wheel for Render's default Python 3.14). `backend/.python-version` (=3.12) is only a backup signal.
+- Render does NOT auto-deploy from the repo here — every release must POST the deploy hook (`-RenderHookUrl`, secret, per-run only). Render free sleeps: first request after idle needs ~60 s cold start, so the app calls `UpdateManager.wakeUp()` (retries `GET /api/health` up to 3 min with UI progress) BEFORE the version check; check timeouts are 15 s connect / 60 s read for the same reason.
 - `.ps1` files MUST keep the UTF-8 BOM. The `edit`/`write` tools strip it, and PowerShell 5.1 then misreads Unicode (`═ → ⚠️`) as ANSI, producing phantom parse errors far from the cause. After any `.ps1` edit, re-apply BOM and re-parse. Also: with `$ErrorActionPreference="Stop"`, any native stderr (`gh`, `git push`) is terminating — toggle EAP to `Continue` around those calls and check `$LASTEXITCODE`.
 
 ## Session memory (`.agents/`)
@@ -74,5 +77,5 @@ This project tracks itself in `.agents/` — read and update it, don't rely on c
 ## Machine gotchas (this dev box)
 
 - `C:` is nearly full (~1 GB free). Put models, builds, and caches on `D:` (`D:\models`, `D:\build`, `D:\gradle-home`). Never `pip`/Gradle-cache onto `C:` defaults.
-- Git repo is local-only (no remote, developer's choice). Commit freely; do not add a remote or push unless asked.
-- The TDD gate `backend/tests/test_mobile_verify.py` must stay green (`pytest tests/test_mobile_verify.py -q` from `backend/`); extend `app/mobile_verify.py` + tests when adding app surfaces.
+- Git remote is `angelaramiz/Interlingo` (branch `main`, public). Committing + pushing is the normal flow (each `release.ps1` run commits `version.json` itself); the deploy hook, not the push, triggers Render.
+- The TDD gate is TWO suites, both must stay green from `backend/` (`pytest tests/ -q`): `test_mobile_verify.py` (static app verifier — extend `app/mobile_verify.py` + tests when adding app surfaces) and `test_openrouter_client.py` (mocked-transport unit tests). Test-writing trap: failure details echo the checked keyword (`missing <kw>`), so `kw in details` asserts are VACUOUS — assert on `result.passed` flags instead (see `TestOta` timeout/guardrail tests + `_fun_body` helper).
