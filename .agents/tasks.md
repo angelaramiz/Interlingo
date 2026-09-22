@@ -50,6 +50,9 @@
 - [x] Backup `backend/.python-version` (=3.12) por si el yaml se ignora
 - [ ] Fijar `PYTHON_VERSION=3.12.6` en dashboard de Render (servicio manual ignora render.yaml) — pendiente del desarrollador
 - [x] Hook de Render integrado en `release.ps1` (`-RenderHookUrl`, secreto solo por parámetro)
+- [x] Fix BOM en `version.json` (leía default por `json.loads` + BOM; ahora `utf-8-sig` y escritura sin BOM)
+- [x] OTA verificado en producción: `interlingo.onrender.com/api/app-version` → v0.2.0 + APK GitHub
+- [ ] Probar OTA en dispositivo físico
 - [ ] Probar OTA en dispositivo físico
 
 ### Verificación
