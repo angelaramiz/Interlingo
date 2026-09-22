@@ -45,7 +45,8 @@
 - [x] `release.ps1`: build → GitHub Release → version.json + push → verify con espera de redeploy (validado e2e v0.2.0)
 - [x] APK v0.2.0 publicado en GitHub Releases (URL pública verificada, 78.8 MB)
 - [x] Verificador TDD extendido con checks OTA (60/60, 100% cobertura)
-- [ ] Crear servicio web en Render (pendiente del desarrollador — ver input.md)
+- [x] Crear servicio web en Render (pendiente del desarrollador — ver input.md)
+- [x] Fix deploy Render: `PYTHON_VERSION=3.12.6` (pydantic 2.9.2 no tiene wheel para Python 3.14)
 - [ ] Probar OTA en dispositivo físico
 
 ### Verificación
