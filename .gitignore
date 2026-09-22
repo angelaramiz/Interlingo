@@ -1,0 +1,26 @@
+# Python / backend
+backend/.venv/
+backend/__pycache__/
+backend/**/*.pyc
+backend/.env
+backend/*.db
+backend/static/*.apk
+
+# Android / Gradle
+android/.gradle/
+android/build/
+android/composeApp/build/
+android/local.properties
+android/*.iml
+android/.idea/
+android/captures/
+android/.cxx/
+android/.externalNativeBuild/
+
+# Keystore y credenciales (nunca al repo)
+android/keystore/
+
+# Sistema
+.DS_Store
+Thumbs.db
+*.log
