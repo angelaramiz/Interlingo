@@ -37,6 +37,14 @@
 - `MainActivity`: descarga el modelo en primer arranque, lo carga y pasa `LocalEngine` a la UI.
 - APK 78 MB, compila OK. Pendiente: probar en dispositivo físico arm64.
 
+## 2026-08-12 — Repo + OTA + releases
+- `git init` + commit inicial (solo local, sin remoto por decisión del desarrollador).
+- Keystore release generado en `android/keystore/` (gitignored).
+- Backend: tabla `app_versions`, `GET /api/app-version`, estáticos en `/static`, `render.yaml` para Render.
+- Android: `UpdateManager` (check/descarga/instalación vía FileProvider), diálogo de update + botón manual, versionado y `SERVER_URL` por props de Gradle.
+- `release.ps1` validado e2e: APK release firmado v0.2.0 (code 2), copiado a `backend/static`, DB actualizada, endpoint y descarga verificados en local.
+- Verificador TDD extendido a OTA: 60/60, 100% cobertura.
+
 ## 2026-09-20 — Verificación TDD de la app móvil (103/103 OK)
 - Nuevo `backend/app/mobile_verify.py` + `backend/tests/test_mobile_verify.py`: ciclo RED→GREEN→REFACTOR estricto.
 - 55 tests pytest, cobertura 100% sobre `mobile_verify.py` (umbral exigido 80%).

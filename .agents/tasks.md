@@ -37,6 +37,16 @@
 - [x] APK 78 MB con las .so (arm64-v8a), compila OK
 - [ ] Probar en dispositivo físico arm64 (emulador x86_64 no carga las .so)
 
+### Versionado, releases y OTA
+- [x] git init + commit inicial (solo local, sin remoto)
+- [x] Keystore release generado (`android/keystore/`, gitignored; password en `.credentials` local)
+- [x] Backend: tabla `app_versions` + `GET /api/app-version` + `/static` + `render.yaml` (Render)
+- [x] Android: versionado por props (`-PappVersionCode/-PappVersionName`), `BuildConfig.SERVER_URL`, `UpdateManager` (check/descarga/instalación), FileProvider, botón manual + diálogo
+- [x] `release.ps1`: build → deploy → SQLite → verify (validado e2e: APK firmado v0.2.0/code 2, endpoint + static OK)
+- [x] Verificador TDD extendido con checks OTA (60/60, 100% cobertura)
+- [ ] Definir URL pública de Render y hacer primer release real
+- [ ] Probar OTA en dispositivo físico
+
 ### Verificación
 - [x] Verificación TDD de la app móvil (2026-09-20): `backend/app/mobile_verify.py` + 55 tests, cobertura 100%, 103/103 checks OK
 

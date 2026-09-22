@@ -33,6 +33,7 @@ kotlin {
         }
         androidMain.dependencies {
             implementation(libs.androidx.activity.compose)
+            implementation(libs.androidx.core)
             implementation(libs.ktor.client.okhttp)
             implementation(compose.preview)
         }
@@ -47,11 +48,15 @@ android {
         applicationId = "com.lenglearning.app"
         minSdk = 26
         targetSdk = 35
-        versionCode = 1
-        versionName = "0.1.0"
+        versionCode = (project.findProperty("appVersionCode") as String? ?: "1").toInt()
+        versionName = project.findProperty("appVersionName") as String? ?: "0.1.0"
         ndk {
             abiFilters += listOf("arm64-v8a")
         }
+        buildConfigField(
+            "String", "SERVER_URL",
+            "\"${project.findProperty("serverUrl") as String? ?: "http://10.0.2.2:8000"}\"",
+        )
     }
 
     packaging {
@@ -64,6 +69,10 @@ android {
         getByName("release") {
             isMinifyEnabled = false
         }
+    }
+
+    buildFeatures {
+        buildConfig = true
     }
 
     compileOptions {

@@ -1,9 +1,11 @@
-from fastapi import Depends, FastAPI, HTTPException
+from fastapi import Depends, FastAPI, HTTPException, Query
+from fastapi.staticfiles import StaticFiles
 from sqlalchemy.orm import Session
 
 from .database import Base, engine, get_db
-from .models import Evaluacion, Meta, Nivel, Usuario
+from .models import AppVersion, Evaluacion, Meta, Nivel, Usuario
 from .schemas import (
+    AppVersionResponse,
     DiagnosticoRespuestas,
     DiagnosticoResultado,
     EvaluacionResultado,
@@ -25,6 +27,17 @@ from .services.planner import generar_plan, listar_niveles
 Base.metadata.create_all(bind=engine)
 
 app = FastAPI(title="LengLearning API", version="0.1.0")
+
+app.mount("/static", StaticFiles(directory="static"), name="static")
+
+
+@app.get("/api/app-version", response_model=AppVersionResponse)
+def app_version(app: str = Query(default=""), db: Session = Depends(get_db)):
+    key = f"app_version_{app}" if app else "app_version"
+    row = db.get(AppVersion, key)
+    if row and row.valor:
+        return AppVersionResponse(**row.valor)
+    return AppVersionResponse()
 
 
 @app.post("/api/meta")

@@ -70,3 +70,9 @@ class EvaluacionResultado(BaseModel):
     ruta_idioma_score: float
     ruta_tema_score: float
     decision: str
+
+
+class AppVersionResponse(BaseModel):
+    versionCode: int = 1
+    versionName: str = "0.1.0"
+    apkUrl: str = "/static/lenglearning.apk"

@@ -11,16 +11,19 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -29,7 +32,10 @@ import com.lenglearning.app.data.LearningApi
 import com.lenglearning.app.llm.LlmEngine
 import com.lenglearning.app.llm.LocalEngine
 import com.lenglearning.app.llm.ModelDownloader
+import com.lenglearning.app.update.AppVersionInfo
+import com.lenglearning.app.update.UpdateManager
 import java.io.File
+import kotlinx.coroutines.launch
 
 class MainActivity : ComponentActivity() {
 
@@ -44,11 +50,39 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         val modelsDir = File(filesDir, "models")
+        val serverUrl = BuildConfig.SERVER_URL
         setContent {
             MaterialTheme {
                 var engine by remember { mutableStateOf<LearningApi?>(null) }
                 var progress by remember { mutableStateOf<Pair<Long, Long>?>(null) }
                 var error by remember { mutableStateOf<String?>(null) }
+                var updateInfo by remember { mutableStateOf<AppVersionInfo?>(null) }
+                var updateStatus by remember { mutableStateOf<String?>(null) }
+                var checkingUpdate by remember { mutableStateOf(false) }
+                var downloadingUpdate by remember { mutableStateOf<Pair<Long, Long>?>(null) }
+                val scope = rememberCoroutineScope()
+
+                fun doCheckUpdate(manual: Boolean) {
+                    if (checkingUpdate) return
+                    checkingUpdate = true
+                    if (manual) updateStatus = "Buscando actualización…"
+                    scope.launch {
+                        try {
+                            val latest = UpdateManager.checkForUpdate(serverUrl)
+                            val local = UpdateManager.getLocalVersionCode(this@MainActivity)
+                            if (latest != null && latest.versionCode > local) {
+                                updateInfo = latest
+                                updateStatus = null
+                            } else if (manual) {
+                                updateStatus = "Ya estás al día"
+                            }
+                        } catch (e: Exception) {
+                            if (manual) updateStatus = "Sin conexión al servidor"
+                        } finally {
+                            checkingUpdate = false
+                        }
+                    }
+                }
 
                 LaunchedEffect(Unit) {
                     try {
@@ -64,12 +98,78 @@ class MainActivity : ComponentActivity() {
                     }
                 }
 
+                LaunchedEffect(engine) {
+                    if (engine != null) doCheckUpdate(manual = false)
+                }
+
                 Surface(modifier = Modifier.fillMaxSize()) {
                     when {
                         error != null -> ModelErrorScreen(error!!) { recreate() }
-                        engine != null -> App(engine!!)
+                        engine != null -> App(
+                            api = engine!!,
+                            onManualUpdate = { doCheckUpdate(manual = true) },
+                            updateStatus = updateStatus,
+                        )
                         else -> ModelDownloadScreen(progress)
                     }
+                }
+
+                val info = updateInfo
+                if (info != null) {
+                    AlertDialog(
+                        onDismissRequest = { updateInfo = null },
+                        title = { Text("Nueva versión disponible") },
+                        text = {
+                            Column {
+                                Text("LengLearning ${info.versionName} está lista para instalar.")
+                                val dl = downloadingUpdate
+                                if (dl != null) {
+                                    Spacer(Modifier.height(12.dp))
+                                    val (done, total) = dl
+                                    val frac = if (total > 0) {
+                                        (done.toFloat() / total.toFloat()).coerceIn(0f, 1f)
+                                    } else {
+                                        0f
+                                    }
+                                    LinearProgressIndicator(
+                                        progress = { frac },
+                                        modifier = Modifier.fillMaxWidth(),
+                                    )
+                                    Spacer(Modifier.height(4.dp))
+                                    Text("${done / 1024 / 1024} MB / ${total / 1024 / 1024} MB")
+                                }
+                            }
+                        },
+                        confirmButton = {
+                            Button(
+                                onClick = {
+                                    if (downloadingUpdate != null) return@Button
+                                    scope.launch {
+                                        try {
+                                            val apkUrl = UpdateManager.resolveApkUrl(
+                                                serverUrl, info.apkUrl
+                                            )
+                                            val apk = UpdateManager.downloadApk(
+                                                this@MainActivity, apkUrl
+                                            ) { done, total ->
+                                                downloadingUpdate = done to total
+                                            }
+                                            downloadingUpdate = null
+                                            updateInfo = null
+                                            UpdateManager.installApk(this@MainActivity, apk)
+                                        } catch (e: Exception) {
+                                            downloadingUpdate = null
+                                            updateStatus = "Error al descargar: ${e.message}"
+                                            updateInfo = null
+                                        }
+                                    }
+                                }
+                            ) { Text("Descargar e instalar") }
+                        },
+                        dismissButton = {
+                            TextButton(onClick = { updateInfo = null }) { Text("Después") }
+                        },
+                    )
                 }
             }
         }

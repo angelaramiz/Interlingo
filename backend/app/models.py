@@ -76,3 +76,10 @@ class Traza(Base):
     decision = Column(String(30))
 
     meta = relationship("Meta", back_populates="trazas")
+
+
+class AppVersion(Base):
+    __tablename__ = "app_versions"
+
+    clave = Column(String(50), primary_key=True)
+    valor = Column(JSON, default=dict)

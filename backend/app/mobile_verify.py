@@ -305,6 +305,74 @@ def check_backend_contract(root: str | Path) -> list[MobileCheckResult]:
     return results
 
 
+_OTA_ANDROID_KWS = [
+    "REQUEST_INSTALL_PACKAGES",
+    "FileProvider",
+    "fileprovider",
+    "file_paths",
+    "/api/app-version",
+    "checkForUpdate",
+    "downloadApk",
+    "installApk",
+    "getLocalVersionCode",
+    "Buscar actualización",
+]
+_OTA_BACKEND_KWS = [
+    "app_versions",
+    "/api/app-version",
+    "StaticFiles",
+    "AppVersionResponse",
+    "/static/lenglearning.apk",
+]
+_RELEASE_KWS = [
+    "assembleRelease",
+    "appVersionCode",
+    "appVersionName",
+    "serverUrl",
+    "set_version",
+    "lenglearning.apk",
+]
+
+
+def check_ota(root: str | Path) -> list[MobileCheckResult]:
+    base = Path(root)
+    results = []
+    um = _find(base, "UpdateManager.kt")
+    results.append(_ok("ota.updatemanager", um is not None,
+                       "UpdateManager.kt present" if um else "UpdateManager.kt missing"))
+    fp = _find(base, "file_paths.xml")
+    results.append(_ok("ota.filepaths", fp is not None,
+                       "file_paths.xml present" if fp else "file_paths.xml missing"))
+    android_text = (
+        _read(_find(base, "UpdateManager.kt")) + "\n"
+        + _read(_find(base, "AndroidManifest.xml")) + "\n"
+        + _read(_find(base, "MainActivity.kt")) + "\n"
+        + _read(_find(base, "App.kt"))
+    )
+    for kw in _OTA_ANDROID_KWS:
+        ok_ = kw in android_text
+        results.append(_ok(f"ota.android:{kw}", ok_, kw if ok_ else f"missing {kw}"))
+    backend_text = (
+        _read(_find(base, "models.py")) + "\n"
+        + _read(_find(base, "main.py")) + "\n"
+        + _read(_find(base, "schemas.py"))
+    )
+    for kw in _OTA_BACKEND_KWS:
+        ok_ = kw in backend_text
+        results.append(_ok(f"ota.backend:{kw}", ok_, kw if ok_ else f"missing {kw}"))
+    rel = _find(base, "release.ps1")
+    results.append(_ok("ota.release", rel is not None,
+                       "release.ps1 present" if rel else "release.ps1 missing"))
+    rel_text = _read(rel)
+    for kw in _RELEASE_KWS:
+        ok_ = kw in rel_text
+        results.append(_ok(f"ota.release:{kw}", ok_, kw if ok_ else f"missing {kw}"))
+    ry = _find(base, "render.yaml")
+    results.append(_ok("ota.render", ry is not None,
+                       "render.yaml present" if ry else "render.yaml missing"))
+    return results
+
+
 def verify_mobile_app(root: str | Path | None = None) -> MobileReport:
     base = project_root(root)
     results: list[MobileCheckResult] = []
@@ -315,6 +383,7 @@ def verify_mobile_app(root: str | Path | None = None) -> MobileReport:
     results += check_app_flow(base)
     results += check_ondevice(base)
     results += check_backend_contract(base)
+    results += check_ota(base)
     passed = sum(1 for r in results if r.passed)
     return MobileReport(total=len(results), passed=passed,
                         failed=len(results) - passed, results=results)

@@ -16,6 +16,7 @@ from app.mobile_verify import (
     check_file_structure,
     check_learning_api,
     check_ondevice,
+    check_ota,
     format_report,
     project_root,
     verify_mobile_app,
@@ -270,6 +271,33 @@ class TestBackendContract:
         (tmp_path / "main.py").write_text("app = 1\n", encoding="utf-8")
         (tmp_path / "LearningApi.kt").write_text("interface X {}\n", encoding="utf-8")
         assert any(not r.passed for r in check_backend_contract(tmp_path))
+
+
+# ---------- full report ----------
+
+class TestOta:
+    def test_real_project_passes(self):
+        results = check_ota(ROOT)
+        assert all(r.passed for r in results), [(r.name, r.detail) for r in results if not r.passed]
+
+    def test_android_update_flow(self):
+        details = " ".join(r.detail for r in check_ota(ROOT))
+        for kw in ("checkForUpdate", "downloadApk", "installApk", "FileProvider",
+                   "REQUEST_INSTALL_PACKAGES", "Buscar actualización"):
+            assert kw in details, kw
+
+    def test_backend_version_endpoint(self):
+        details = " ".join(r.detail for r in check_ota(ROOT))
+        for kw in ("app_versions", "/api/app-version", "StaticFiles", "AppVersionResponse"):
+            assert kw in details, kw
+
+    def test_release_pipeline(self):
+        details = " ".join(r.detail for r in check_ota(ROOT))
+        for kw in ("assembleRelease", "appVersionCode", "serverUrl", "set_version", "render.yaml"):
+            assert kw in details, kw
+
+    def test_empty_dir_reported(self, tmp_path):
+        assert any(not r.passed for r in check_ota(tmp_path))
 
 
 # ---------- full report ----------

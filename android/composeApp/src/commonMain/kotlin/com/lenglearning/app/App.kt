@@ -74,7 +74,11 @@ sealed interface UiState {
 private val idiomas = mapOf("en" to "Inglés", "es" to "Español", "fr" to "Francés")
 
 @Composable
-fun App(api: LearningApi) {
+fun App(
+    api: LearningApi,
+    onManualUpdate: () -> Unit = {},
+    updateStatus: String? = null,
+) {
     MaterialTheme {
         var state by remember { mutableStateOf<UiState>(UiState.Home) }
         var metaTexto by remember { mutableStateOf("") }
@@ -88,6 +92,8 @@ fun App(api: LearningApi) {
                     idioma = idioma,
                     onMetaChange = { metaTexto = it },
                     onIdiomaChange = { idioma = it },
+                    onManualUpdate = onManualUpdate,
+                    updateStatus = updateStatus,
                     onComenzar = {
                         scope.launch {
                             state = UiState.Loading
@@ -204,6 +210,8 @@ private fun HomeScreen(
     onMetaChange: (String) -> Unit,
     onIdiomaChange: (String) -> Unit,
     onComenzar: () -> Unit,
+    onManualUpdate: () -> Unit = {},
+    updateStatus: String? = null,
 ) {
     Column(
         modifier = Modifier
@@ -232,6 +240,17 @@ private fun HomeScreen(
             modifier = Modifier.fillMaxWidth(),
         ) {
             Text("Comenzar")
+        }
+        Spacer(Modifier.height(16.dp))
+        OutlinedButton(
+            onClick = onManualUpdate,
+            modifier = Modifier.fillMaxWidth(),
+        ) {
+            Text("Buscar actualización")
+        }
+        if (updateStatus != null) {
+            Spacer(Modifier.height(8.dp))
+            Text(updateStatus, style = MaterialTheme.typography.bodySmall)
         }
     }
 }
