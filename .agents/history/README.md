@@ -50,3 +50,10 @@
 - 55 tests pytest, cobertura 100% sobre `mobile_verify.py` (umbral exigido 80%).
 - Verificado: 9 fuentes Kotlin + Manifest + 6 `.so`; `LearningApi` (6 métodos) espeja las 7 rutas backend; `ApiClient` (baseUrl 10.0.2.2:8000 + 7 endpoints); 12 DTOs `@Serializable`; máquina de 8 estados y 8 pantallas en `App.kt` con progreso, decisión avanzar/profundizar y manejo de errores; on-device (`llm_bridge` JNI, descarga con `.part` + progreso, `LocalEngine`, 7 builders de `PromptEngine` + `extractJson`, INTERNET, arm64-v8a, URL HF del GGUF); paridad de prompts con `backend/app/ai/prompts.py`.
 - Hallazgo menor (corregido en el verificador, no en la app): hay dos `build.gradle.kts` y el primero en orden de disco no trae `abiFilters`; el verificador ahora concatena todos.
+
+## 2026-09-22 — Icono personalizado squircle y Release OTA v0.2.3
+- Diseñado icono de alta fidelidad exclusivo para Interlingo: formato squircle con esquinas 100% transparentes, doble burbuja de diálogo (frontal azul con "A", superior violeta con "文"), trazos orbitales de intercambio bidireccional y estrella dorada de 4 puntas simbolizando el motor IA adaptativo.
+- Generados recursos vectoriales y rasterizados: master SVG, `ic_launcher.png`, `ic_launcher_round.png` e `ic_launcher_foreground.png` en 5 densidades (mdpi a xxxhdpi), y definiciones adaptive icon en `mipmap-anydpi-v26`.
+- Actualizado `AndroidManifest.xml` con `android:icon` y `android:roundIcon`.
+- Verificación TDD aprobada (70/70 tests OK en pytest).
+- Ejecutado pipeline `release.ps1`: build release firmado (75.3 MB), publicación de release v0.2.3 en GitHub Releases, actualización de `version.json` (versionCode 5), commit, push y verificación en vivo contra `https://interlingo.onrender.com/api/app-version`.

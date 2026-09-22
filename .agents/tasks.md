@@ -57,7 +57,8 @@
 - [x] Wake-up de Render (`/api/health` + `wakeUp` con reintentos, "Despertando servidor…")
 - [x] OpenRouter robusto (TDD): reintentos con backoff, fallback por 404, timeout configurable, reuso de cliente, parseo JSON tolerante
 - [x] Release v0.2.2 (code 4) de prueba publicado y verificado e2e
-- [ ] Probar OTA en dispositivo físico
+- [x] Icono squircle personalizado para Interlingo (esquinas transparentes, doble burbuja A/文, estrella IA, mipmaps y adaptive icon)
+- [x] Release v0.2.3 (code 5) publicado y verificado e2e con nuevo icono
 - [ ] Probar OTA en dispositivo físico
 
 ### Verificación
