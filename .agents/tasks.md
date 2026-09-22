@@ -54,6 +54,9 @@
 - [x] OTA verificado en producción: `interlingo.onrender.com/api/app-version` → v0.2.0 + APK GitHub
 - [x] Fix "Sin conexión" (TDD): v0.2.0 llevaba SERVER_URL de emulador; v0.2.1 con URL real + timeouts 60s + guardrail `-ServerUrl` obligatorio en release
 - [x] Release v0.2.1 (code 3) publicado y verificado e2e
+- [x] Wake-up de Render (`/api/health` + `wakeUp` con reintentos, "Despertando servidor…")
+- [x] OpenRouter robusto (TDD): reintentos con backoff, fallback por 404, timeout configurable, reuso de cliente, parseo JSON tolerante
+- [x] Release v0.2.2 (code 4) de prueba publicado y verificado e2e
 - [ ] Probar OTA en dispositivo físico
 - [ ] Probar OTA en dispositivo físico
 

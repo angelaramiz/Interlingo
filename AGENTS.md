@@ -20,6 +20,7 @@ cd backend
 
 - Config is `backend/.env` (machine-local, gitignored): `AI_PROVIDER=local|openrouter`, `LOCAL_MODEL_PATH`, `OPENROUTER_MODEL`, `DATABASE_URL`. Backend reads `.env` from its own cwd — run every command from `backend/`.
 - Services call `chat_json` from `app.ai.inference` (the `AI_PROVIDER` dispatcher). Never call `openrouter`/`local` directly from services.
+- `OpenRouterClient` retries (backoff) on 429/5xx/timeouts, falls through `openrouter_fallback_models` (comma-separated env) on 404, reuses one `httpx.Client`, and parses JSON tolerantly. New tunables: `OPENROUTER_TIMEOUT`, `OPENROUTER_MAX_RETRIES`. Unit tests: `backend/tests/test_openrouter_client.py` (mocked transport).
 - Prompt template functions live in `app/ai/prompts.py`. Service functions must NOT reuse a template name — alias on import (`interpretar_meta as interpretar_meta_prompt`); a same-name call recurses instead of hitting the template (this bug already happened once).
 - Local provider keeps the model loaded in a module-global; a fresh process reloads the ~2.3 GB GGUF (expect ~15–20 s on first call).
 - Prompts pass full language names (`English`), never codes (`en`) — the 4B model generates in the wrong language otherwise.
