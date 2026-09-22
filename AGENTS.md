@@ -53,6 +53,7 @@ cd android
 - `versionCode`/`versionName`/`SERVER_URL` come from Gradle props (`-PappVersionCode`, `-PappVersionName`, `-PserverUrl`), NOT from editing `build.gradle.kts`. The app reads its own `versionCode` via `PackageManager` to compare against `/api/app-version`.
 - PowerShell→`gradlew.bat` quirk: quote EVERY `-P` arg (`"-PappVersionCode=2"`), otherwise values with dots split into bogus tasks (e.g. `Task '.2.0' not found`).
 - Signing via `-Pandroid.injected.signing.*` props. Keystore lives in `android/keystore/` (gitignored); passwords only as CLI params, never in the repo.
+- Same secrecy rule for `-RenderHookUrl` (Render deploy-hook key): pass it per-run, never commit it. After push, `release.ps1` POSTs the hook to force the redeploy, then polls `/api/app-version` until the new `versionCode` answers.
 - On-device update flow (`androidMain/.../update/UpdateManager.kt`): silent check on start + manual "Buscar actualización" button; download to external Downloads with `.part`+rename; install via `FileProvider` (`${applicationId}.fileprovider` + `res/xml/file_paths.xml`). Needs `REQUEST_INSTALL_PACKAGES` and the user enabling "install unknown apps".
 - Backend serves APKs from `backend/static/` (`/static/...`). `backend/static/*.apk` is gitignored — the APK lands there only at release time.
 - Version truth is `backend/static/version.json` (committed); `/api/app-version` reads it first, then the `app_versions` SQLite row, then defaults. `release.ps1` writes version.json + commits + pushes (Render redeploys).
