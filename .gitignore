@@ -24,3 +24,6 @@ android/keystore/
 .DS_Store
 Thumbs.db
 *.log
+
+.coverage
+htmlcov/
