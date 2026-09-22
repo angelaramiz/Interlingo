@@ -149,7 +149,8 @@ Write-Ok "APK publicado: $apkUrl"
 # ─── Paso 3: Versión (version.json + SQLite local + push) ───
 Write-Step "3/4 VERSION"
 $versionJson = @{ versionCode = $VersionCode; versionName = $VersionName; apkUrl = $apkUrl } | ConvertTo-Json -Compress
-Set-Content (Join-Path $Root "backend/static/version.json") $versionJson -NoNewline -Encoding utf8
+$noBom = New-Object System.Text.UTF8Encoding $false
+[System.IO.File]::WriteAllText((Join-Path $Root "backend/static/version.json"), $versionJson, $noBom)
 Write-Ok "backend/static/version.json = $versionJson"
 
 $dbPath = Join-Path $Root "backend/interlingo.db"
