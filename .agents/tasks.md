@@ -38,13 +38,14 @@
 - [ ] Probar en dispositivo físico arm64 (emulador x86_64 no carga las .so)
 
 ### Versionado, releases y OTA
-- [x] git init + commit inicial (solo local, sin remoto)
+- [x] git init + remoto `angelaramiz/Interlingo` + push (rama `main`)
 - [x] Keystore release generado (`android/keystore/`, gitignored; password en `.credentials` local)
-- [x] Backend: tabla `app_versions` + `GET /api/app-version` + `/static` + `render.yaml` (Render)
+- [x] Backend: tabla `app_versions` + `GET /api/app-version` (lee `version.json` primero) + `/static` + `render.yaml` (Render)
 - [x] Android: versionado por props (`-PappVersionCode/-PappVersionName`), `BuildConfig.SERVER_URL`, `UpdateManager` (check/descarga/instalación), FileProvider, botón manual + diálogo
-- [x] `release.ps1`: build → deploy → SQLite → verify (validado e2e: APK firmado v0.2.0/code 2, endpoint + static OK)
+- [x] `release.ps1`: build → GitHub Release → version.json + push → verify con espera de redeploy (validado e2e v0.2.0)
+- [x] APK v0.2.0 publicado en GitHub Releases (URL pública verificada, 78.8 MB)
 - [x] Verificador TDD extendido con checks OTA (60/60, 100% cobertura)
-- [ ] Definir URL pública de Render y hacer primer release real
+- [ ] Crear servicio web en Render (pendiente del desarrollador — ver input.md)
 - [ ] Probar OTA en dispositivo físico
 
 ### Verificación

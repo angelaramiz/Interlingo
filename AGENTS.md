@@ -15,7 +15,7 @@ Language-learning-by-topic app. Two halves: `backend/` (FastAPI + SQLite, AI con
 ```powershell
 cd backend
 .\.venv\Scripts\python.exe -m pip install -r requirements.txt   # venv lives at backend/.venv
-.\.venv\Scripts\uvicorn.exe app.main:app --reload
+.\.venv\Scripts\python.exe -m uvicorn app.main:app --reload     # NOT uvicorn.exe (dies instantly on this box)
 ```
 
 - Config is `backend/.env` (machine-local, gitignored): `AI_PROVIDER=local|openrouter`, `LOCAL_MODEL_PATH`, `OPENROUTER_MODEL`, `DATABASE_URL`. Backend reads `.env` from its own cwd — run every command from `backend/`.
@@ -55,7 +55,10 @@ cd android
 - Signing via `-Pandroid.injected.signing.*` props. Keystore lives in `android/keystore/` (gitignored); passwords only as CLI params, never in the repo.
 - On-device update flow (`androidMain/.../update/UpdateManager.kt`): silent check on start + manual "Buscar actualización" button; download to external Downloads with `.part`+rename; install via `FileProvider` (`${applicationId}.fileprovider` + `res/xml/file_paths.xml`). Needs `REQUEST_INSTALL_PACKAGES` and the user enabling "install unknown apps".
 - Backend serves APKs from `backend/static/` (`/static/...`). `backend/static/*.apk` is gitignored — the APK lands there only at release time.
+- Version truth is `backend/static/version.json` (committed); `/api/app-version` reads it first, then the `app_versions` SQLite row, then defaults. `release.ps1` writes version.json + commits + pushes (Render redeploys).
+- APK hosting is GitHub Releases (`gh release create/upload`), NOT the repo: `https://github.com/angelaramiz/Interlingo/releases/download/vX.Y.Z/interlingo.apk`. Repo is public so the phone downloads without auth.
 - Render note (`render.yaml`): production uses `AI_PROVIDER=openrouter` (the 2.3 GB local GGUF does not fit Render's disk/RAM). `OPENROUTER_API_KEY` must be set in the Render dashboard.
+- `.ps1` files MUST keep the UTF-8 BOM. The `edit`/`write` tools strip it, and PowerShell 5.1 then misreads Unicode (`═ → ⚠️`) as ANSI, producing phantom parse errors far from the cause. After any `.ps1` edit, re-apply BOM and re-parse. Also: with `$ErrorActionPreference="Stop"`, any native stderr (`gh`, `git push`) is terminating — toggle EAP to `Continue` around those calls and check `$LASTEXITCODE`.
 
 ## Session memory (`.agents/`)
 

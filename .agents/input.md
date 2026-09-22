@@ -9,6 +9,12 @@
 - [x] Stack definitivo: KMP/Compose (Android primero, iOS después) + FastAPI + SQLite + OpenRouter
 - [x] Modelo de IA: **local Qwen3-4B** por defecto (AI_PROVIDER=local); OpenRouter opcional
 - [ ] ¿Idiomas objetivo iniciales? (¿inglés primero?) — probado con inglés (en)
+
+## Crear servicio en Render (pendiente del desarrollador)
+- [ ] En render.com → New + → Web Service → conectar repo `angelaramiz/Interlingo`
+- [ ] `render.yaml` ya define todo: Root Directory `backend`, Build `pip install -r requirements.txt`, Start `uvicorn app.main:app --host 0.0.0.0 --port $PORT`
+- [ ] Variables de entorno en el dashboard: `AI_PROVIDER=openrouter`, `OPENROUTER_MODEL=openai/gpt-4o-mini`, `OPENROUTER_API_KEY=<tu clave>`
+- [ ] URL resultante (ej: `https://interlingo-api.onrender.com`): pasarla como `-ServerUrl` en el próximo `release.ps1` para que la app apunte al servidor real
 - [ ] ¿Niveles de idioma basados en CEFR (A1-C2)?
 - [ ] ¿Niveles de tema por complejidad técnica propia?
 - [ ] ¿Se inicializa repositorio git ahora?
