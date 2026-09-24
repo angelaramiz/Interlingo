@@ -25,3 +25,22 @@ def test_postgres_url_builds_without_connecting():
 def test_postgres_supabase_forces_ssl():
     eng = make_engine("postgresql://user:pass@db.xxx.supabase.co:5432/postgres")
     assert eng.url.query.get("sslmode") == "require" or "sslmode" in str(eng.url)
+
+
+def test_ipv4_hostaddr_resolves(monkeypatch):
+    from app.database import _ipv4_hostaddr
+    import socket
+    monkeypatch.setattr(
+        socket, "getaddrinfo",
+        lambda *a, **k: [(socket.AF_INET, None, None, None, ("1.2.3.4", 5432))],
+    )
+    assert _ipv4_hostaddr("db.xxx.supabase.co", 5432) == "1.2.3.4"
+
+
+def test_ipv4_hostaddr_falls_back_on_dns_failure(monkeypatch):
+    from app.database import _ipv4_hostaddr
+    import socket
+    def _boom(*a, **k):
+        raise OSError("no dns")
+    monkeypatch.setattr(socket, "getaddrinfo", _boom)
+    assert _ipv4_hostaddr("db.xxx.supabase.co", 5432) is None
