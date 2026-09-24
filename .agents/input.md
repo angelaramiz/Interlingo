@@ -14,6 +14,7 @@
 - [ ] En render.com → New + → Web Service → conectar repo `angelaramiz/Interlingo`
 - [ ] `render.yaml` ya define todo: Root Directory `backend`, Build `pip install -r requirements.txt`, Start `uvicorn app.main:app --host 0.0.0.0 --port $PORT`
 - [ ] Variables de entorno en el dashboard (OrcaRouter, modelo gratis): `AI_PROVIDER=orcarouter`, `ORCA_BASE_URL=https://api.orcarouter.ai/v1/chat/completions`, `ORCA_MODEL=z-ai/glm-5.3-flash-free`, `ORCA_API_KEY=<tu clave sk-orca-...>` — borra las viejas `OPENROUTER_*` para no confundir (el servicio manual ignora render.yaml: cambiarlas en el dashboard; guardarlas redispara el deploy)
+- [ ] DB persistente (Supabase, proyecto `hxzxcauujojjddexqvkk`): en dashboard Render poner `DATABASE_URL=postgresql://postgres:<pass>@db.hxzxcauujojjddexqvkk.supabase.co:5432/postgres` (pass = la de Supabase → Settings → Database; NUNCA al repo ni al chat). El backend crea las tablas solo con `create_all`.
 - [ ] URL resultante (ej: `https://interlingo-api.onrender.com`): pasarla como `-ServerUrl` en el próximo `release.ps1` para que la app apunte al servidor real
 - [ ] ¿Niveles de idioma basados en CEFR (A1-C2)?
 - [ ] ¿Niveles de tema por complejidad técnica propia?
