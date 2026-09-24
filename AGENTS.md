@@ -51,7 +51,7 @@ cd android
 
 ```powershell
 .\release.ps1 -VersionCode 6 -VersionName "0.2.4" -ServerUrl "https://<tu-api>.onrender.com" -KeystorePassword "..." -KeyPassword "..."
-# current production: versionCode 5 / v0.2.3 — bump both every release
+# current production: versionCode 6 / v0.2.4 — bump both every release
 ```
 
 - Pipeline: `:composeApp:assembleRelease` (signed) → upload APK to GitHub Release → write `version.json` + commit + push → POST Render deploy hook → poll `/api/app-version` until the new `versionCode` answers. (The SQLite upsert via `backend/scripts/set_version.py` still runs, but only matters for local dev — production reads `version.json`.)

@@ -81,3 +81,8 @@
 - El release v0.2.3 (code 5, construido el 22) NO trae backend-first (cambio del 23-24, sin commitear): en emulador descarga el GGUF directo. Descarga detenida con force-stop.
 - Produccion verificada arriba: /api/health ok, /api/app-version -> v0.2.3 code 5.
 - Siguiente paso: release v0.2.4 (code 6) via release.ps1 para llevar backend-first + sesiones + diccionario al telefono.
+
+## 2026-09-24 — Release v0.2.4 (code 6)
+- Pipeline release.ps1 e2e: build release firmado (75.3 MB) -> GitHub Release v0.2.4 -> version.json + push -> hook Render -> /api/app-version sirve code 6 (intento 3).
+- Incluye: backend-first + Mis sesiones + HttpTimeout/mensajeError + diccionario (tap-a-palabra).
+- QA emulador previa: conflicto de firma debug/release explicado; release v0.2.3 instala limpio tras uninstall.

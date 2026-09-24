@@ -73,8 +73,9 @@
 - [x] Home "Mis sesiones" con Continuar → Plan (o Diagnóstico si aún sin niveles)
 - [x] ApiClient HttpTimeout 15s/120s/300s + `mensajeError` amable en App.kt (fin del "Generando contenido..." infinito)
 - [x] QA en emulador: Home en línea + resume + error finito verificados con capturas
-- [ ] E2E de generación real con IA (falta `OPENROUTER_API_KEY` en `backend/.env` o re-descargar GGUF a `D:/models` — pendiente del desarrollador)
-- [ ] Probar OTA en dispositivo físico
+- [x] Modelo Qwen3-4B re-descargado a `D:/models` (2.33 GB); generación local e2e verificada (meta→diagnóstico→plan→lección)
+- [x] Release v0.2.4 (code 6) publicado y verificado e2e (backend-first + sesiones + diccionario)
+- [ ] Probar OTA en dispositivo físico (instalar v0.2.4 y verificar actualización)
 
 ### Verificación
 - [x] Verificación TDD de la app móvil (2026-09-20): `backend/app/mobile_verify.py` + 55 tests, cobertura 100%, 103/103 checks OK
