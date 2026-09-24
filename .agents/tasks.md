@@ -60,9 +60,26 @@
 - [x] Icono squircle personalizado para Interlingo (esquinas transparentes, doble burbuja A/文, estrella IA, mipmaps y adaptive icon)
 - [x] Release v0.2.3 (code 5) publicado y verificado e2e con nuevo icono
 - [ ] Probar OTA en dispositivo físico
+- [ ] Validación MVP en dispositivo (1 semana, base para modo conversacional):
+  - [ ] Ciclo completo real (meta → diagnóstico → plan → lección → evaluación)
+  - [ ] Tiempos: descarga modelo, carga, cada generación
+  - [ ] Calidad del inglés generado y nivel adecuado
+  - [ ] Calidad pedagógica (preguntas, feedback, ajuste)
+  - [ ] Batería/calentamiento/crashes
+
+### Sesiones en backend (2026-09-23)
+- [x] `GET /api/metas` + `MetaResumen` (tests/test_metas.py, 4 tests con SQLite en memoria)
+- [x] MainActivity backend-first (health 5s → ApiClient, si no LocalEngine) + etiqueta de modo en Home
+- [x] Home "Mis sesiones" con Continuar → Plan (o Diagnóstico si aún sin niveles)
+- [x] ApiClient HttpTimeout 15s/120s/300s + `mensajeError` amable en App.kt (fin del "Generando contenido..." infinito)
+- [x] QA en emulador: Home en línea + resume + error finito verificados con capturas
+- [ ] E2E de generación real con IA (falta `OPENROUTER_API_KEY` en `backend/.env` o re-descargar GGUF a `D:/models` — pendiente del desarrollador)
+- [ ] Probar OTA en dispositivo físico
 
 ### Verificación
 - [x] Verificación TDD de la app móvil (2026-09-20): `backend/app/mobile_verify.py` + 55 tests, cobertura 100%, 103/103 checks OK
+- [x] Sesiones backend (2026-09-23): 82/82 tests pytest (`test_metas.py` + `TestSesionBackend` + checks nuevos)
+- [x] Diccionario integrado (2026-09-24): TDD estricto RED→GREEN→REFACTOR — 19 tests nuevos `test_diccionario.py` + 6 `TestDiccionarioContract`; servicio 100% cobertura; 107/107 tests pytest en total
 
 ### UX/UI
 - [x] Pantalla de inicio (campo de meta + botón comenzar) — App.kt
@@ -70,7 +87,7 @@
 - [x] Flujo diagnóstico → plan → lección → evaluación → resultado (App.kt)
 - [x] Feedback inmediato con explicación + scores de idioma/tema + decisión del motor
 - [x] Barra de progreso por nivel
-- [ ] Diccionario integrado (clic en palabra → traducción)
+- [x] Diccionario integrado (clic en palabra → traducción) — TDD 2026-09-24: `POST /api/diccionario` + `buscarDefinicion` en LearningApi/ApiClient/LocalEngine + `diccionarioUser` en PromptEngine/backend + LeccionScreen con palabras tocables y diálogo (ver history)
 - [ ] Control de dificultad manual (fácil / adecuado / difícil)
 - [ ] Mockups de las 4 secuencias (lectura, producción guiada, respuesta escrita, explicación propia)
 
