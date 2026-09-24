@@ -99,3 +99,7 @@
 
 ## 2026-09-24 — Renombre a OrcaRouter
 - orcarouter.py / OrcaRouterClient / settings ORCA_* / AI_PROVIDER=orcarouter / test_orcarouter_client.py. Historial y decisions fechados no se reescriben. Gate 110/110.
+
+## 2026-09-24 — Produccion verificada e2e con OrcaRouter
+- Tras dashboard ORCA_* + redeploy: POST /api/meta -> tema ETL, GET diagnostico -> 5 preguntas, POST resultado -> plan 5 niveles, POST leccion/1 -> titulo + 6 vocabulario. Todo generado por z-ai/glm-5.3-flash-free.
+- Nota: disco efimero en Render free resetea interlingo.db en cada deploy (ids desde 1).
