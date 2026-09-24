@@ -107,3 +107,8 @@
 ## 2026-09-24 — DB persistente Supabase
 - make_engine(sqlite|postgres) + sslmode=require en *.supabase.co + pool_pre_ping. Tests test_database.py (4). Gate 114/114.
 - Pendiente del desarrollador: pegar DATABASE_URL (con pass) en dashboard Render.
+
+## 2026-09-24 — Supabase conectado, Orca en cuota
+- Deploy verde con pooler 6543: arranque limpio, GET /api/metas lee tablas Supabase vacias. DB confirmada operativa.
+- POST /api/meta -> 500 por 429 free_rate_limited de Orca (capacidad gratis saturada, transitorio). Rollback OK sin zombies.
+- Pendiente: reintentar flujo completo cuando Orca libere cuota.
