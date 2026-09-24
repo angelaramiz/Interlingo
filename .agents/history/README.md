@@ -103,3 +103,7 @@
 ## 2026-09-24 — Produccion verificada e2e con OrcaRouter
 - Tras dashboard ORCA_* + redeploy: POST /api/meta -> tema ETL, GET diagnostico -> 5 preguntas, POST resultado -> plan 5 niveles, POST leccion/1 -> titulo + 6 vocabulario. Todo generado por z-ai/glm-5.3-flash-free.
 - Nota: disco efimero en Render free resetea interlingo.db en cada deploy (ids desde 1).
+
+## 2026-09-24 — DB persistente Supabase
+- make_engine(sqlite|postgres) + sslmode=require en *.supabase.co + pool_pre_ping. Tests test_database.py (4). Gate 114/114.
+- Pendiente del desarrollador: pegar DATABASE_URL (con pass) en dashboard Render.
