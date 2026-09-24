@@ -96,3 +96,6 @@
 - El 500 de prod NO era la key (valida): Orca responde 429 free_rate_limited — los modelos gratis exigen vincular una cuenta GitHub establecida o agregar credito (pendiente del desarrollador en consola OrcaRouter).
 - Codigo: OPENROUTER_BASE_URL configurable (param base_url + settings, test TDD TestBaseUrl), defaults a api.orcarouter.ai + z-ai/glm-5.3-flash-free. Nombres de vars OPENROUTER_* conservados para no tocar de mas el dashboard. Gate 110/110.
 - Diagnostico en vivo con key del usuario via script temporal (borrado tras uso); clave NUNCA en repo.
+
+## 2026-09-24 — Renombre a OrcaRouter
+- orcarouter.py / OrcaRouterClient / settings ORCA_* / AI_PROVIDER=orcarouter / test_orcarouter_client.py. Historial y decisions fechados no se reescriben. Gate 110/110.
