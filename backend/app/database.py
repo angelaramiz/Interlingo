@@ -1,10 +1,14 @@
+import logging
 import socket
 from urllib.parse import parse_qsl, quote, urlencode, urlsplit, urlunsplit
 
 from sqlalchemy import create_engine
 from sqlalchemy.orm import declarative_base, sessionmaker
+from sqlalchemy.pool import NullPool
 
 from .config import settings
+
+log = logging.getLogger("interlingo.db")
 
 
 def _ipv4_hostaddr(host: str, port: int) -> str | None:
@@ -16,12 +20,17 @@ def _ipv4_hostaddr(host: str, port: int) -> str | None:
         return None
 
 
+def _is_supabase(host: str | None) -> bool:
+    return bool(host) and ("supabase.co" in host or "pooler.supabase.com" in host)
+
+
 def make_engine(database_url: str):
     """SQLite local o Postgres (Supabase) en produccion.
 
-    Supabase exige SSL: si el host es *.supabase.co y la URL no trae
-    sslmode, se agrega `sslmode=require` automaticamente. Ademas se
-    fuerza IPv4 via `hostaddr` (libpq prefiere IPv6 y Render no lo rutea).
+    Supabase exige SSL (`sslmode=require` automatico). El endpoint directo
+    es dual-stack y libpq prefiere IPv6 (Render free no lo rutea): se fuerza
+    IPv4 via `hostaddr` cuando el DNS lo permite. Si no, usar el pooler de
+    Supabase (solo IPv4, puerto 6543) con NullPool (pgbouncer).
     """
     database_url = database_url.strip().strip("\"'")
     if database_url.startswith("sqlite"):
@@ -35,7 +44,7 @@ def make_engine(database_url: str):
         if colon:
             database_url = f"{scheme}://{user}:{quote(password, safe='')}@{tail}"
     parts = urlsplit(database_url)
-    if parts.hostname and parts.hostname.endswith("supabase.co"):
+    if _is_supabase(parts.hostname):
         query = dict(parse_qsl(parts.query))
         query.setdefault("sslmode", "require")
         database_url = urlunsplit(parts._replace(query=urlencode(query)))
@@ -43,6 +52,11 @@ def make_engine(database_url: str):
         hostaddr = _ipv4_hostaddr(parts.hostname, parts.port or 5432)
         if hostaddr:
             connect_args["hostaddr"] = hostaddr
+        if (parts.port or 5432) == 6543:
+            log.info("db pooler %s (NullPool)", parts.hostname)
+            return create_engine(database_url, connect_args=connect_args,
+                                 poolclass=NullPool)
+        log.info("db directa %s hostaddr=%s", parts.hostname, hostaddr)
         return create_engine(database_url, connect_args=connect_args,
                              pool_pre_ping=True, pool_recycle=300)
     return create_engine(database_url, pool_pre_ping=True)

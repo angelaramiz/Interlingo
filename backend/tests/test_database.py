@@ -29,6 +29,15 @@ def test_password_with_special_chars_survives():
     assert eng.url.username == "postgres"
 
 
+def test_pooler_url_forces_ssl_and_nullpool():
+    from sqlalchemy.pool import NullPool
+    eng = make_engine(
+        "postgresql://postgres.xxx:pass@aws-0-us-east-1.pooler.supabase.com:6543/postgres"
+    )
+    assert eng.url.query.get("sslmode") == "require"
+    assert isinstance(eng.pool, NullPool)
+
+
 def test_postgres_url_builds_without_connecting():
     eng = make_engine("postgresql://user:pass@db.xxx.supabase.co:5432/postgres")
     assert eng.url.drivername == "postgresql"
