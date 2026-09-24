@@ -91,3 +91,8 @@
 - Sintoma (telefono): El servidor no pudo generar el contenido. Reproducido: POST /api/meta prod -> 500 en ~1s (sin reintentos => 401 de OpenRouter: OPENROUTER_API_KEY ausente/invalida en dashboard Render, pendiente del desarrollador).
 - Hallazgo: la meta se commiteaba ANTES de interpretar_meta -> zombies con tema vacio en Mis sesiones (visto en prod). Fix TDD: rollback de meta+usuario si la IA falla (test_meta_fallida_no_deja_zombie). Gate 108/108.
 - Quedan 2 filas zombie en prod (intento real del usuario + 1 repro mio): sin endpoint de borrado, se dejan; rollback evita futuras.
+
+## 2026-09-24 — Cambio a OrcaRouter (modelo gratis)
+- El 500 de prod NO era la key (valida): Orca responde 429 free_rate_limited — los modelos gratis exigen vincular una cuenta GitHub establecida o agregar credito (pendiente del desarrollador en consola OrcaRouter).
+- Codigo: OPENROUTER_BASE_URL configurable (param base_url + settings, test TDD TestBaseUrl), defaults a api.orcarouter.ai + z-ai/glm-5.3-flash-free. Nombres de vars OPENROUTER_* conservados para no tocar de mas el dashboard. Gate 110/110.
+- Diagnostico en vivo con key del usuario via script temporal (borrado tras uso); clave NUNCA en repo.
