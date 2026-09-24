@@ -1,7 +1,7 @@
 import httpx
 import pytest
 
-from app.ai.openrouter import OpenRouterClient
+from app.ai.orcarouter import OrcaRouterClient
 
 MSGS = [{"role": "user", "content": "hola"}]
 
@@ -23,7 +23,7 @@ def _sequence_client(responses: list, **kwargs) -> tuple:
         return item
 
     transport = httpx.MockTransport(handler)
-    client = OpenRouterClient(
+    client = OrcaRouterClient(
         api_key="key", model="m-primary", backoff_base=0.0, transport=transport, **kwargs
     )
     return client, calls
@@ -69,7 +69,7 @@ class TestFallback:
             return _ok_response('{"a": 2}')
 
         transport = httpx.MockTransport(handler)
-        client = OpenRouterClient(
+        client = OrcaRouterClient(
             api_key="key",
             model="m-primary",
             fallback_models=["m-fallback"],
@@ -100,7 +100,7 @@ class TestBaseUrl:
         from app.config import settings
         client, calls = _sequence_client([_ok_response('{"a": 1}')])
         assert client.chat_json(MSGS) == {"a": 1}
-        assert str(calls[0].url) == settings.openrouter_base_url
+        assert str(calls[0].url) == settings.orca_base_url
 
 
 class TestClientReuse:
@@ -113,7 +113,7 @@ class TestClientReuse:
                 created.append(kwargs)
                 super().__init__(*args, **kwargs)
 
-        import app.ai.openrouter as or_module
+        import app.ai.orcarouter as or_module
 
         old = or_module.httpx.Client
         or_module.httpx.Client = RecordingClient
@@ -121,7 +121,7 @@ class TestClientReuse:
             transport = httpx.MockTransport(
                 lambda request: _ok_response('{"a": 1}')
             )
-            client = OpenRouterClient(
+            client = OrcaRouterClient(
                 api_key="key", model="m", backoff_base=0.0, transport=transport
             )
             client.chat_json(MSGS)

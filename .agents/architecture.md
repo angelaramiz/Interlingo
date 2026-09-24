@@ -35,7 +35,7 @@ Métrica principal: cuánto entiende y expresa el usuario en el idioma mientras 
 
 ## Stack técnico (MVP)
 - **Frontend móvil**: Kotlin Multiplatform + Compose Multiplatform. Fase 1 solo Android; iOS se añade después (módulo compartido). Componentes: texto, opción múltiple, campo de escritura, tarjetas de traducción, barra de progreso.
-- **Backend**: FastAPI. Recibe la meta, llama a OpenRouter, aplica reglas de nivel, devuelve contenido estructurado en JSON.
+- **Backend**: FastAPI. Recibe la meta, llama a OrcaRouter, aplica reglas de nivel, devuelve contenido estructurado en JSON.
 - **Base de datos**: SQLite (MVP) → PostgreSQL (crecimiento). Guarda: usuario, meta, tema, nivel actual, conceptos dominados/débiles, evaluaciones, errores repetidos, contenido generado.
 - **Motor de prompts**: plantillas separadas para interpretar meta, diagnóstico, plan, lección, evaluación, corrección, ajuste de nivel.
 - **Salida estructurada**: JSON con campos como título, explicación, pregunta, opciones, respuesta correcta, nivel, palabras clave, criterio de éxito.
@@ -44,7 +44,7 @@ Métrica principal: cuánto entiende y expresa el usuario en el idioma mientras 
 
 ## Motor de IA (configurable)
 - `AI_PROVIDER=local` (por defecto): **Qwen3-4B-Instruct** con `llama-cpp-python` (CPU). Modelo en `D:\models\Qwen3-4B-Instruct-2507-Q4_K_M.gguf`.
-- `AI_PROVIDER=openrouter`: OpenRouter con `OPENROUTER_MODEL`.
+- `AI_PROVIDER=orcarouter`: OrcaRouter con `ORCA_MODEL`.
 - Dispatcher en `app/ai/inference.py`; el resto del backend no cambia.
 
 ## Inferencia on-device (app)

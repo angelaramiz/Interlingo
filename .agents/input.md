@@ -6,14 +6,14 @@
 - Documentado en meetings/decisions/decision1.md y architecture.md.
 
 ## Decisiones que necesita el desarrollador
-- [x] Stack definitivo: KMP/Compose (Android primero, iOS después) + FastAPI + SQLite + OpenRouter
-- [x] Modelo de IA: **local Qwen3-4B** por defecto (AI_PROVIDER=local); OpenRouter opcional
+- [x] Stack definitivo: KMP/Compose (Android primero, iOS después) + FastAPI + SQLite + OrcaRouter
+- [x] Modelo de IA: **local Qwen3-4B** por defecto (AI_PROVIDER=local); OrcaRouter (GLM 5.3 Flash gratis) en producción
 - [ ] ¿Idiomas objetivo iniciales? (¿inglés primero?) — probado con inglés (en)
 
 ## Crear servicio en Render (pendiente del desarrollador)
 - [ ] En render.com → New + → Web Service → conectar repo `angelaramiz/Interlingo`
 - [ ] `render.yaml` ya define todo: Root Directory `backend`, Build `pip install -r requirements.txt`, Start `uvicorn app.main:app --host 0.0.0.0 --port $PORT`
-- [ ] Variables de entorno en el dashboard (OrcaRouter, modelo gratis): `OPENROUTER_BASE_URL=https://api.orcarouter.ai/v1/chat/completions`, `OPENROUTER_MODEL=z-ai/glm-5.3-flash-free`, `OPENROUTER_API_KEY=<tu clave sk-orca-...>` (el servicio manual ignora render.yaml: cambiarlas en el dashboard; guardarlas redispara el deploy)
+- [ ] Variables de entorno en el dashboard (OrcaRouter, modelo gratis): `AI_PROVIDER=orcarouter`, `ORCA_BASE_URL=https://api.orcarouter.ai/v1/chat/completions`, `ORCA_MODEL=z-ai/glm-5.3-flash-free`, `ORCA_API_KEY=<tu clave sk-orca-...>` — borra las viejas `OPENROUTER_*` para no confundir (el servicio manual ignora render.yaml: cambiarlas en el dashboard; guardarlas redispara el deploy)
 - [ ] URL resultante (ej: `https://interlingo-api.onrender.com`): pasarla como `-ServerUrl` en el próximo `release.ps1` para que la app apunte al servidor real
 - [ ] ¿Niveles de idioma basados en CEFR (A1-C2)?
 - [ ] ¿Niveles de tema por complejidad técnica propia?

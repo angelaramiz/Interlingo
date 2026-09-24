@@ -167,7 +167,7 @@ class TestTraducirPalabra:
 
     def test_usa_dispatcher_chat_json(self, monkeypatch):
         # el servicio debe llamar a app.ai.inference.chat_json vía import local,
-        # nunca a openrouter/local directo
+        # nunca a orcarouter/local directo
         import app.services.dictionary as dic
         import inspect
 

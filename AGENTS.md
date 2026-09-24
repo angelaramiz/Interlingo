@@ -4,7 +4,7 @@ Language-learning-by-topic app. Two halves: `backend/` (FastAPI + SQLite, AI con
 
 ## Layout
 
-- `backend/app/` — `main.py` (routes, also runs `Base.metadata.create_all` on import), `config.py`, `database.py`, `models.py`, `schemas.py`, `ai/` (prompts, OpenRouter client, local llama.cpp provider, dispatcher), `services/` (diagnostic, planner, lesson, evaluate, adjust)
+- `backend/app/` — `main.py` (routes, also runs `Base.metadata.create_all` on import), `config.py`, `database.py`, `models.py`, `schemas.py`, `ai/` (prompts, OrcaRouter client, local llama.cpp provider, dispatcher), `services/` (diagnostic, planner, lesson, evaluate, adjust)
 - `android/composeApp/src/commonMain/` — UI (`App.kt` takes `api: LearningApi`), DTOs, `ApiClient`
 - `android/composeApp/src/androidMain/` — `MainActivity` (downloads model, loads engine, passes `LocalEngine` to `App`), `llm/` (`LlmEngine` JNI wrapper, `ModelDownloader`, `PromptEngine`, `LocalEngine`)
 - `android/composeApp/src/main/jniLibs/arm64-v8a/` — prebuilt native `.so` (checked in intent: Gradle does NOT compile native code)
@@ -19,13 +19,13 @@ cd backend
 .\.venv\Scripts\python.exe -m pytest tests/ -q                  # TDD gate: both suites must stay green
 ```
 
-- Config is `backend/.env` (machine-local, gitignored): `AI_PROVIDER=local|openrouter`, `LOCAL_MODEL_PATH`, `OPENROUTER_MODEL`, `DATABASE_URL`. Backend reads `.env` from its own cwd — run every command from `backend/`. `main.py` also mounts `StaticFiles(directory="static")` with a RELATIVE path, so launching from anywhere else breaks `/static` + `version.json`.
-- Services call `chat_json` from `app.ai.inference` (the `AI_PROVIDER` dispatcher). Never call `openrouter`/`local` directly from services.
-- `OpenRouterClient` retries (backoff) on 429/5xx/timeouts, falls through `openrouter_fallback_models` (comma-separated env) on 404, reuses one `httpx.Client`, and parses JSON tolerantly. New tunables: `OPENROUTER_TIMEOUT`, `OPENROUTER_MAX_RETRIES`. Unit tests: `backend/tests/test_openrouter_client.py` (mocked transport).
+- Config is `backend/.env` (machine-local, gitignored): `AI_PROVIDER=local|orcarouter`, `LOCAL_MODEL_PATH`, `ORCA_MODEL`, `DATABASE_URL`. Backend reads `.env` from its own cwd — run every command from `backend/`. `main.py` also mounts `StaticFiles(directory="static")` with a RELATIVE path, so launching from anywhere else breaks `/static` + `version.json`.
+- Services call `chat_json` from `app.ai.inference` (the `AI_PROVIDER` dispatcher). Never call `orcarouter`/`local` directly from services.
+- `OrcaRouterClient` (`app/ai/orcarouter.py`, OpenAI-compatible endpoint) retries (backoff) on 429/5xx/timeouts, falls through `orca_fallback_models` (comma-separated env) on 404, reuses one `httpx.Client`, and parses JSON tolerantly. New tunables: `ORCA_TIMEOUT`, `ORCA_MAX_RETRIES`. Unit tests: `backend/tests/test_orcarouter_client.py` (mocked transport).
 - Prompt template functions live in `app/ai/prompts.py`. Service functions must NOT reuse a template name — alias on import (`interpretar_meta as interpretar_meta_prompt`); a same-name call recurses instead of hitting the template (this bug already happened once).
 - Local provider keeps the model loaded in a module-global; a fresh process reloads the ~2.3 GB GGUF (expect ~15–20 s on first call).
 - Prompts pass full language names (`English`), never codes (`en`) — the 4B model generates in the wrong language otherwise.
-- API key for tests: mock `chat_json` on the imported instance (`from app.ai.openrouter import openrouter`), not on the module.
+- API key for tests: mock `chat_json` on the imported instance (`from app.ai.orcarouter import orcarouter`), not on the module.
 
 ## Android
 
@@ -64,7 +64,7 @@ cd android
 - Backend serves APKs from `backend/static/` (`/static/...`). `backend/static/*.apk` is gitignored — the APK lands there only at release time.
 - Version truth is `backend/static/version.json` (committed, MUST be BOM-less: PS 5.1 `Set-Content -Encoding utf8` writes a BOM that breaks `json.loads` → silent fallback to defaults; `release.ps1` writes it via .NET UTF-8-no-BOM). `/api/app-version` reads it first (with `utf-8-sig`), then the `app_versions` SQLite row, then defaults. `GET /api/health` is the cheap wake-up ping (no DB).
 - APK hosting is GitHub Releases (`gh release create/upload`), NOT the repo: `https://github.com/angelaramiz/Interlingo/releases/download/vX.Y.Z/interlingo.apk`. Repo is public so the phone downloads without auth.
-- Render note (`render.yaml`): production uses `AI_PROVIDER=openrouter` (the 2.3 GB local GGUF does not fit Render's disk/RAM) pointed at **OrcaRouter** (`OPENROUTER_BASE_URL=https://api.orcarouter.ai/v1/chat/completions`, `OPENROUTER_MODEL=z-ai/glm-5.3-flash-free`, free tier). `OPENROUTER_API_KEY` (sk-orca-…) must be set in the Render dashboard. Orca free models REQUIRE the workspace owner to link an established GitHub account (console → profile) or add credits — otherwise every call 429s with `free_rate_limited`.
+- Render note (`render.yaml`): production uses `AI_PROVIDER=orcarouter` (the 2.3 GB local GGUF does not fit Render's disk/RAM) pointed at **OrcaRouter** (`ORCA_BASE_URL=https://api.orcarouter.ai/v1/chat/completions`, `ORCA_MODEL=z-ai/glm-5.3-flash-free`, free tier). `ORCA_API_KEY` (sk-orca-…) must be set in the Render dashboard. Orca free models REQUIRE the workspace owner to link an established GitHub account (console → profile) or add credits — otherwise every call 429s with `free_rate_limited`.
 - Render service was created MANUALLY, so it IGNORES `render.yaml`: env vars (`PYTHON_VERSION`, keys) must be set in the dashboard, not the yaml. Current production: `https://interlingo.onrender.com` (+ `PYTHON_VERSION=3.12.6`, because the pinned `pydantic==2.9.2` has no wheel for Render's default Python 3.14). `backend/.python-version` (=3.12) is only a backup signal.
 - Render does NOT auto-deploy from the repo here — every release must POST the deploy hook (`-RenderHookUrl`, secret, per-run only). Render free sleeps: first request after idle needs ~60 s cold start, so the app calls `UpdateManager.wakeUp()` (retries `GET /api/health` up to 3 min with UI progress) BEFORE the version check; check timeouts are 15 s connect / 60 s read for the same reason.
 - `.ps1` files MUST keep the UTF-8 BOM. The `edit`/`write` tools strip it, and PowerShell 5.1 then misreads Unicode (`═ → ⚠️`) as ANSI, producing phantom parse errors far from the cause. After any `.ps1` edit, re-apply BOM and re-parse. Also: with `$ErrorActionPreference="Stop"`, any native stderr (`gh`, `git push`) is terminating — toggle EAP to `Continue` around those calls and check `$LASTEXITCODE`.
@@ -82,4 +82,4 @@ This project tracks itself in `.agents/` — read and update it, don't rely on c
 
 - `C:` is nearly full (~1 GB free). Put models, builds, and caches on `D:` (`D:\models`, `D:\build`, `D:\gradle-home`). Never `pip`/Gradle-cache onto `C:` defaults.
 - Git remote is `angelaramiz/Interlingo` (branch `main`, public). Committing + pushing is the normal flow (each `release.ps1` run commits `version.json` itself); the deploy hook, not the push, triggers Render.
-- The TDD gate is TWO suites, both must stay green from `backend/` (`pytest tests/ -q`): `test_mobile_verify.py` (static app verifier — extend `app/mobile_verify.py` + tests when adding app surfaces) and `test_openrouter_client.py` (mocked-transport unit tests). Test-writing trap: failure details echo the checked keyword (`missing <kw>`), so `kw in details` asserts are VACUOUS — assert on `result.passed` flags instead (see `TestOta` timeout/guardrail tests + `_fun_body` helper).
+- The TDD gate is TWO suites, both must stay green from `backend/` (`pytest tests/ -q`): `test_mobile_verify.py` (static app verifier — extend `app/mobile_verify.py` + tests when adding app surfaces) and `test_orcarouter_client.py` (mocked-transport unit tests). Test-writing trap: failure details echo the checked keyword (`missing <kw>`), so `kw in details` asserts are VACUOUS — assert on `result.passed` flags instead (see `TestOta` timeout/guardrail tests + `_fun_body` helper).

@@ -3,9 +3,9 @@
 ## MVP — Ciclo: meta → diagnóstico → lección → evaluación → ajuste
 
 ### Setup
-- [x] Decidir stack: KMP/Compose (Android primero, iOS después) + FastAPI + SQLite + OpenRouter
+- [x] Decidir stack: KMP/Compose (Android primero, iOS después) + FastAPI + SQLite + OrcaRouter
 - [ ] Inicializar repositorio git (si aplica)
-- [x] Esqueleto backend: FastAPI + SQLite + motor de prompts + OpenRouter (modelo configurable por env)
+- [x] Esqueleto backend: FastAPI + SQLite + motor de prompts + OrcaRouter (modelo configurable por env)
 - [x] Esquema SQLite (usuario, meta, niveles, evaluaciones, traza)
 - [x] Proyecto KMP en `android/` (composeApp: commonMain + androidMain) — compila assembleDebug OK
   - Namespace/paquete: com.interlingo.app, minSdk 26, compileSdk/targetSdk 35
@@ -14,10 +14,10 @@
 ### Motor de IA
 - [x] Motor de prompts (meta, diagnóstico, plan, lección, evaluación, corrección, ajuste)
 - [x] Formato JSON de salida definido (schemas.py)
-- [x] Cliente OpenRouter con modelo configurable (OPENROUTER_MODEL en .env)
+- [x] Cliente OrcaRouter con modelo configurable (ORCA_MODEL en .env)
 - [x] **Modelo local Qwen3-4B** (llama-cpp-python, CPU): provider `local` en `app/ai/local.py`
   - Modelo: `D:\models\Qwen3-4B-Instruct-2507-Q4_K_M.gguf` (2.33 GB)
-  - Dispatcher `app/ai/inference.py` (AI_PROVIDER=local|openrouter)
+  - Dispatcher `app/ai/inference.py` (AI_PROVIDER=local|orcarouter)
   - Ciclo e2e completo verificado con el modelo local (contenido en inglés)
 
 ### Funcionalidad
@@ -26,7 +26,7 @@
 - [x] Lección (texto breve + vocabulario clave) — probado e2e
 - [x] Evaluación tipo opción múltiple (y respuesta escrita en niveles altos) — probado e2e
 - [x] Lógica de ajuste de nivel (avanzar / repetir / simplificar / profundizar) — probado e2e
-- [ ] Probar flujo completo con API key real (OpenRouter) — opcional, ya hay modelo local
+- [x] Probar flujo completo con API key real (OrcaRouter + GLM 5.3 Flash gratis verificado en vivo)
 - [x] Probar flujo completo con modelo local Qwen3-4B (e2e OK)
 
 ### On-device (app descarga y corre el modelo)
@@ -55,7 +55,7 @@
 - [x] Fix "Sin conexión" (TDD): v0.2.0 llevaba SERVER_URL de emulador; v0.2.1 con URL real + timeouts 60s + guardrail `-ServerUrl` obligatorio en release
 - [x] Release v0.2.1 (code 3) publicado y verificado e2e
 - [x] Wake-up de Render (`/api/health` + `wakeUp` con reintentos, "Despertando servidor…")
-- [x] OpenRouter robusto (TDD): reintentos con backoff, fallback por 404, timeout configurable, reuso de cliente, parseo JSON tolerante
+- [x] OrcaRouter robusto (TDD): reintentos con backoff, fallback por 404, timeout configurable, reuso de cliente, parseo JSON tolerante + base_url configurable
 - [x] Release v0.2.2 (code 4) de prueba publicado y verificado e2e
 - [x] Icono squircle personalizado para Interlingo (esquinas transparentes, doble burbuja A/文, estrella IA, mipmaps y adaptive icon)
 - [x] Release v0.2.3 (code 5) publicado y verificado e2e con nuevo icono

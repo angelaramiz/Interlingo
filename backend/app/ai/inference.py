@@ -6,6 +6,6 @@ def chat_json(messages: list[dict]) -> dict:
         from .local import local_chat_json
 
         return local_chat_json(messages)
-    from .openrouter import openrouter
+    from .orcarouter import orcarouter
 
-    return openrouter.chat_json(messages)
+    return orcarouter.chat_json(messages)

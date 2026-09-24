@@ -19,11 +19,11 @@ def _extract_json(text: str) -> dict:
     start = cleaned.find("{")
     end = cleaned.rfind("}")
     if start == -1 or end == -1 or end < start:
-        raise ValueError("openrouter: no JSON object in response")
+        raise ValueError("orcarouter: no JSON object in response")
     return json.loads(cleaned[start : end + 1])
 
 
-class OpenRouterClient:
+class OrcaRouterClient:
     def __init__(
         self,
         api_key: str | None = None,
@@ -35,16 +35,16 @@ class OpenRouterClient:
         transport: httpx.BaseTransport | None = None,
         base_url: str | None = None,
     ) -> None:
-        self.api_key = api_key if api_key is not None else settings.openrouter_api_key
-        self.base_url = base_url or settings.openrouter_base_url
-        self.model = model or settings.openrouter_model
+        self.api_key = api_key if api_key is not None else settings.orca_api_key
+        self.base_url = base_url or settings.orca_base_url
+        self.model = model or settings.orca_model
         if fallback_models is None:
-            raw = settings.openrouter_fallback_models.strip()
+            raw = settings.orca_fallback_models.strip()
             fallback_models = [m.strip() for m in raw.split(",") if m.strip()]
         self.fallback_models = list(fallback_models)
-        self.timeout = settings.openrouter_timeout if timeout is None else timeout
+        self.timeout = settings.orca_timeout if timeout is None else timeout
         self.max_retries = (
-            settings.openrouter_max_retries if max_retries is None else max_retries
+            settings.orca_max_retries if max_retries is None else max_retries
         )
         self.backoff_base = backoff_base
         self._transport = transport
@@ -85,7 +85,7 @@ class OpenRouterClient:
                     last_exc = e
                     status = e.response.status_code
                     if status == 404:
-                        log.warning("openrouter model %s not found, trying fallback", model)
+                        log.warning("orcarouter model %s not found, trying fallback", model)
                         break
                     if status not in _RETRYABLE_STATUS:
                         raise
@@ -94,7 +94,7 @@ class OpenRouterClient:
                 if attempt < self.max_retries:
                     delay = self.backoff_base * (2 ** (attempt - 1))
                     log.warning(
-                        "openrouter %s attempt %d failed (%s), retry in %.1fs",
+                        "orcarouter %s attempt %d failed (%s), retry in %.1fs",
                         model, attempt, last_exc, delay,
                     )
                     if delay > 0:
@@ -103,4 +103,4 @@ class OpenRouterClient:
         raise last_exc
 
 
-openrouter = OpenRouterClient()
+orcarouter = OrcaRouterClient()

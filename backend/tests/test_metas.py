@@ -79,7 +79,7 @@ def test_metas_orden_recientes_primero():
 
 def test_meta_fallida_no_deja_zombie(monkeypatch):
     def _boom(msgs):
-        raise RuntimeError("openrouter 401")
+        raise RuntimeError("orcarouter 401")
     monkeypatch.setattr(diagnostic, "chat_json", _boom)
     no_raise = TestClient(app, raise_server_exceptions=False)
     r = no_raise.post("/api/meta", json={"texto": "sesion que falla", "idioma_objetivo": "en"})

@@ -6,6 +6,6 @@
 - **Documentador**: mantiene `.agents/` y la arquitectura del proyecto.
 
 ## Desarrollador (humano)
-- Decide stack, modelo de datos y proveedor de IA (OpenRouter).
+- Decide stack, modelo de datos y proveedor de IA (OrcaRouter).
 - Revisa y aprueba cambios antes de integrarlos.
 - Aporta dirección del producto y contenido de interés inicial.
