@@ -20,6 +20,9 @@ android/.externalNativeBuild/
 # Keystore y credenciales (nunca al repo)
 android/keystore/
 
+# Docs locales (esquema SQL con datos potencialmente sensibles, no commitear)
+docs/
+
 # Sistema
 .DS_Store
 Thumbs.db

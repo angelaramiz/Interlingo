@@ -23,6 +23,7 @@ def make_engine(database_url: str):
     sslmode, se agrega `sslmode=require` automaticamente. Ademas se
     fuerza IPv4 via `hostaddr` (libpq prefiere IPv6 y Render no lo rutea).
     """
+    database_url = database_url.strip().strip("\"'")
     if database_url.startswith("sqlite"):
         return create_engine(database_url, connect_args={"check_same_thread": False})
     parts = urlsplit(database_url)

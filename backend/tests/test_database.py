@@ -16,6 +16,12 @@ def test_sqlite_uses_same_thread_arg():
     assert eng.url.drivername == "sqlite"
 
 
+def test_url_strips_quotes_and_spaces():
+    eng = make_engine('  "postgresql://user:pass@db.xxx.supabase.co:5432/postgres"  ')
+    assert eng.url.drivername == "postgresql"
+    assert eng.url.host == "db.xxx.supabase.co"
+
+
 def test_postgres_url_builds_without_connecting():
     eng = make_engine("postgresql://user:pass@db.xxx.supabase.co:5432/postgres")
     assert eng.url.drivername == "postgresql"
