@@ -86,3 +86,8 @@
 - Pipeline release.ps1 e2e: build release firmado (75.3 MB) -> GitHub Release v0.2.4 -> version.json + push -> hook Render -> /api/app-version sirve code 6 (intento 3).
 - Incluye: backend-first + Mis sesiones + HttpTimeout/mensajeError + diccionario (tap-a-palabra).
 - QA emulador previa: conflicto de firma debug/release explicado; release v0.2.3 instala limpio tras uninstall.
+
+## 2026-09-24 — 500 al crear sesion en produccion
+- Sintoma (telefono): El servidor no pudo generar el contenido. Reproducido: POST /api/meta prod -> 500 en ~1s (sin reintentos => 401 de OpenRouter: OPENROUTER_API_KEY ausente/invalida en dashboard Render, pendiente del desarrollador).
+- Hallazgo: la meta se commiteaba ANTES de interpretar_meta -> zombies con tema vacio en Mis sesiones (visto en prod). Fix TDD: rollback de meta+usuario si la IA falla (test_meta_fallida_no_deja_zombie). Gate 108/108.
+- Quedan 2 filas zombie en prod (intento real del usuario + 1 repro mio): sin endpoint de borrado, se dejan; rollback evita futuras.
