@@ -74,7 +74,14 @@ def crear_meta(payload: MetaCreate, db: Session = Depends(get_db)):
     db.add(meta)
     db.commit()
     db.refresh(meta)
-    data = interpretar_meta(db, meta)
+    try:
+        data = interpretar_meta(db, meta)
+    except Exception:
+        # Sin tema no hay sesion valida: borrar para no dejar zombies en Mis sesiones
+        db.delete(meta)
+        db.delete(usuario)
+        db.commit()
+        raise
     return {"meta_id": meta.id, "usuario_id": usuario.id, "tema": data["tema"]}
 
 
