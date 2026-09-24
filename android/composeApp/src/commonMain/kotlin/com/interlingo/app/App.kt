@@ -1,7 +1,10 @@
 package com.interlingo.app
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -10,6 +13,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
@@ -22,6 +26,7 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -33,9 +38,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.interlingo.app.data.LearningApi
 import com.interlingo.app.model.DiagnosticoPregunta
+import com.interlingo.app.model.DiccionarioResponse
 import com.interlingo.app.model.EvaluacionResponse
 import com.interlingo.app.model.EvaluacionResultado
 import com.interlingo.app.model.Leccion as LeccionModel
+import com.interlingo.app.model.MetaResumen
 import com.interlingo.app.model.PlanNivel
 import kotlinx.coroutines.launch
 
@@ -48,24 +55,30 @@ sealed interface UiState {
         val preguntas: List<DiagnosticoPregunta>,
     ) : UiState
 
-    data class Plan(val niveles: List<PlanNivel>) : UiState
+    data class Plan(
+        val niveles: List<PlanNivel>,
+        val idiomaObjetivo: String = "en",
+    ) : UiState
 
     data class Leccion(
         val niveles: List<PlanNivel>,
         val indice: Int,
         val leccion: LeccionModel,
+        val idiomaObjetivo: String = "en",
     ) : UiState
 
     data class Evaluacion(
         val niveles: List<PlanNivel>,
         val indice: Int,
         val evaluacion: EvaluacionResponse,
+        val idiomaObjetivo: String = "en",
     ) : UiState
 
     data class Resultado(
         val niveles: List<PlanNivel>,
         val indice: Int,
         val resultado: EvaluacionResultado,
+        val idiomaObjetivo: String = "en",
     ) : UiState
 
     data class Error(val message: String) : UiState
@@ -78,12 +91,22 @@ fun App(
     api: LearningApi,
     onManualUpdate: () -> Unit = {},
     updateStatus: String? = null,
+    engineLabel: String? = null,
 ) {
     MaterialTheme {
         var state by remember { mutableStateOf<UiState>(UiState.Home) }
         var metaTexto by remember { mutableStateOf("") }
         var idioma by remember { mutableStateOf("en") }
+        var sesiones by remember { mutableStateOf<List<MetaResumen>?>(null) }
         val scope = rememberCoroutineScope()
+
+        androidx.compose.runtime.LaunchedEffect(Unit) {
+            sesiones = try {
+                api.listarMetas()
+            } catch (e: Exception) {
+                emptyList()
+            }
+        }
 
         Surface(modifier = Modifier.fillMaxSize()) {
             when (val s = state) {
@@ -94,6 +117,24 @@ fun App(
                     onIdiomaChange = { idioma = it },
                     onManualUpdate = onManualUpdate,
                     updateStatus = updateStatus,
+                    engineLabel = engineLabel,
+                    sesiones = sesiones,
+                    onContinuarSesion = { sesion ->
+                        scope.launch {
+                            state = UiState.Loading
+                            state = try {
+                                val niveles = api.obtenerNiveles(sesion.id)
+                                if (niveles.isNotEmpty()) {
+                                    UiState.Plan(niveles, sesion.idioma_objetivo)
+                                } else {
+                                    val preguntas = api.obtenerDiagnostico(sesion.id)
+                                    UiState.Diagnostico(sesion.id, sesion.tema, preguntas)
+                                }
+                            } catch (e: Exception) {
+                                UiState.Error(mensajeError(e))
+                            }
+                        }
+                    },
                     onComenzar = {
                         scope.launch {
                             state = UiState.Loading
@@ -102,7 +143,7 @@ fun App(
                                 val preguntas = api.obtenerDiagnostico(meta.meta_id)
                                 UiState.Diagnostico(meta.meta_id, meta.tema, preguntas)
                             } catch (e: Exception) {
-                                UiState.Error(e.message ?: "Error de conexión")
+                                UiState.Error(mensajeError(e))
                             }
                         }
                     },
@@ -118,9 +159,9 @@ fun App(
                             state = UiState.Loading
                             state = try {
                                 val plan = api.enviarDiagnostico(s.metaId, respuestas)
-                                UiState.Plan(plan.niveles)
+                                UiState.Plan(plan.niveles, idioma)
                             } catch (e: Exception) {
-                                UiState.Error(e.message ?: "Error de conexión")
+                                UiState.Error(mensajeError(e))
                             }
                         }
                     },
@@ -133,9 +174,9 @@ fun App(
                             state = UiState.Loading
                             state = try {
                                 val leccion = api.generarLeccion(s.niveles[indice].id)
-                                UiState.Leccion(s.niveles, indice, leccion)
+                                UiState.Leccion(s.niveles, indice, leccion, s.idiomaObjetivo)
                             } catch (e: Exception) {
-                                UiState.Error(e.message ?: "Error de conexión")
+                                UiState.Error(mensajeError(e))
                             }
                         }
                     },
@@ -145,14 +186,17 @@ fun App(
                     niveles = s.niveles,
                     indice = s.indice,
                     leccion = s.leccion,
+                    onBuscarPalabra = { palabra ->
+                        api.buscarDefinicion(palabra, s.idiomaObjetivo)
+                    },
                     onEvaluacion = {
                         scope.launch {
                             state = UiState.Loading
                             state = try {
                                 val ev = api.generarEvaluacion(s.niveles[s.indice].id)
-                                UiState.Evaluacion(s.niveles, s.indice, ev)
+                                UiState.Evaluacion(s.niveles, s.indice, ev, s.idiomaObjetivo)
                             } catch (e: Exception) {
-                                UiState.Error(e.message ?: "Error de conexión")
+                                UiState.Error(mensajeError(e))
                             }
                         }
                     },
@@ -167,9 +211,9 @@ fun App(
                             state = UiState.Loading
                             state = try {
                                 val resultado = api.responderEvaluacion(s.evaluacion.id, respuesta)
-                                UiState.Resultado(s.niveles, s.indice, resultado)
+                                UiState.Resultado(s.niveles, s.indice, resultado, s.idiomaObjetivo)
                             } catch (e: Exception) {
-                                UiState.Error(e.message ?: "Error de conexión")
+                                UiState.Error(mensajeError(e))
                             }
                         }
                     },
@@ -186,9 +230,9 @@ fun App(
                             state = UiState.Loading
                             state = try {
                                 val leccion = api.generarLeccion(s.niveles[siguiente].id)
-                                UiState.Leccion(s.niveles, siguiente, leccion)
+                                UiState.Leccion(s.niveles, siguiente, leccion, s.idiomaObjetivo)
                             } catch (e: Exception) {
-                                UiState.Error(e.message ?: "Error de conexión")
+                                UiState.Error(mensajeError(e))
                             }
                         }
                     },
@@ -212,10 +256,14 @@ private fun HomeScreen(
     onComenzar: () -> Unit,
     onManualUpdate: () -> Unit = {},
     updateStatus: String? = null,
+    engineLabel: String? = null,
+    sesiones: List<MetaResumen>? = null,
+    onContinuarSesion: (MetaResumen) -> Unit = {},
 ) {
     Column(
         modifier = Modifier
             .fillMaxSize()
+            .verticalScroll(rememberScrollState())
             .padding(24.dp),
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -223,6 +271,10 @@ private fun HomeScreen(
         Text(text = "Interlingo", style = MaterialTheme.typography.headlineLarge)
         Spacer(Modifier.height(8.dp))
         Text(text = "Aprende un idioma mientras aprendes lo que te interesa")
+        if (engineLabel != null) {
+            Spacer(Modifier.height(4.dp))
+            Text(engineLabel, style = MaterialTheme.typography.bodySmall)
+        }
         Spacer(Modifier.height(24.dp))
         OutlinedTextField(
             value = metaTexto,
@@ -251,6 +303,35 @@ private fun HomeScreen(
         if (updateStatus != null) {
             Spacer(Modifier.height(8.dp))
             Text(updateStatus, style = MaterialTheme.typography.bodySmall)
+        }
+        if (sesiones == null) {
+            Spacer(Modifier.height(16.dp))
+            Text("Cargando sesiones…", style = MaterialTheme.typography.bodySmall)
+        } else if (sesiones.isNotEmpty()) {
+            Spacer(Modifier.height(24.dp))
+            Text("Mis sesiones", style = MaterialTheme.typography.titleMedium)
+            Spacer(Modifier.height(8.dp))
+            sesiones.forEach { sesion ->
+                Card(
+                    modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
+                    onClick = { onContinuarSesion(sesion) },
+                ) {
+                    Column(Modifier.padding(12.dp)) {
+                        Text(
+                            sesion.tema.ifBlank { sesion.texto },
+                            style = MaterialTheme.typography.titleSmall,
+                        )
+                        if (sesion.estado.isNotBlank()) {
+                            Text(
+                                "Estado: ${sesion.estado}",
+                                style = MaterialTheme.typography.bodySmall,
+                            )
+                        }
+                        Spacer(Modifier.height(4.dp))
+                        Text("Continuar →", style = MaterialTheme.typography.bodySmall)
+                    }
+                }
+            }
         }
     }
 }
@@ -373,13 +454,39 @@ private fun PlanScreen(niveles: List<PlanNivel>, onIniciarNivel: (Int) -> Unit) 
     }
 }
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun LeccionScreen(
     niveles: List<PlanNivel>,
     indice: Int,
     leccion: LeccionModel,
     onEvaluacion: () -> Unit,
+    onBuscarPalabra: suspend (String) -> DiccionarioResponse,
 ) {
+    val scope = rememberCoroutineScope()
+    var palabraSel by remember { mutableStateOf<String?>(null) }
+    var definicion by remember { mutableStateOf<DiccionarioResponse?>(null) }
+    var buscando by remember { mutableStateOf(false) }
+    var errorDic by remember { mutableStateOf<String?>(null) }
+
+    fun buscar(palabra: String) {
+        val limpia = palabra.trim('.', ',', ';', ':', '!', '?', '"', '\'', '(', ')')
+        if (limpia.isBlank()) return
+        palabraSel = limpia
+        definicion = null
+        errorDic = null
+        buscando = true
+        scope.launch {
+            try {
+                definicion = onBuscarPalabra(limpia)
+            } catch (e: Exception) {
+                errorDic = mensajeError(e)
+            } finally {
+                buscando = false
+            }
+        }
+    }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -390,7 +497,20 @@ private fun LeccionScreen(
         Spacer(Modifier.height(16.dp))
         Text(leccion.titulo, style = MaterialTheme.typography.headlineMedium)
         Spacer(Modifier.height(8.dp))
-        Text(leccion.texto, style = MaterialTheme.typography.bodyLarge)
+        Text(
+            "Toca una palabra para ver su traducción",
+            style = MaterialTheme.typography.bodySmall,
+        )
+        Spacer(Modifier.height(4.dp))
+        FlowRow {
+            leccion.texto.split(" ").forEach { palabra ->
+                Text(
+                    text = "$palabra ",
+                    style = MaterialTheme.typography.bodyLarge,
+                    modifier = Modifier.clickable { buscar(palabra) },
+                )
+            }
+        }
         if (leccion.vocabulario.isNotEmpty()) {
             Spacer(Modifier.height(16.dp))
             Text("Vocabulario clave", style = MaterialTheme.typography.titleMedium)
@@ -410,6 +530,43 @@ private fun LeccionScreen(
         Button(onClick = onEvaluacion, modifier = Modifier.fillMaxWidth()) {
             Text("Ir a la evaluación")
         }
+    }
+    if (palabraSel != null) {
+        AlertDialog(
+            onDismissRequest = { palabraSel = null },
+            title = { Text(palabraSel ?: "") },
+            text = {
+                Column {
+                    when {
+                        buscando -> Text("Buscando traducción…")
+                        errorDic != null -> Text(errorDic ?: "")
+                        definicion != null -> {
+                            Text(
+                                definicion?.traduccion ?: "",
+                                style = MaterialTheme.typography.titleMedium,
+                            )
+                            if (definicion?.definicion?.isNotBlank() == true) {
+                                Spacer(Modifier.height(4.dp))
+                                Text(
+                                    definicion?.definicion ?: "",
+                                    style = MaterialTheme.typography.bodyMedium,
+                                )
+                            }
+                            if (definicion?.ejemplo?.isNotBlank() == true) {
+                                Spacer(Modifier.height(4.dp))
+                                Text(
+                                    definicion?.ejemplo ?: "",
+                                    style = MaterialTheme.typography.bodySmall,
+                                )
+                            }
+                        }
+                    }
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = { palabraSel = null }) { Text("Cerrar") }
+            },
+        )
     }
 }
 
@@ -533,6 +690,18 @@ private fun BarraProgreso(niveles: List<PlanNivel>, indice: Int) {
         LinearProgressIndicator(progress = { progreso }, modifier = Modifier.fillMaxWidth())
         Spacer(Modifier.height(4.dp))
         Text("Nivel ${indice + 1} de ${niveles.size}", style = MaterialTheme.typography.bodySmall)
+    }
+}
+
+private fun mensajeError(e: Exception): String {
+    val m = e.message ?: ""
+    return when {
+        "500" in m -> "El servidor no pudo generar el contenido. Reintenta en un momento."
+        "404" in m -> "La sesión ya no existe en el servidor."
+        "Timeout" in m || "timeout" in m -> "Tardó demasiado en responder. Revisa tu conexión y reintenta."
+        m.startsWith("Expected response body") -> "Respuesta inesperada del servidor. Reintenta."
+        m.isBlank() -> "Error de conexión"
+        else -> m
     }
 }
 

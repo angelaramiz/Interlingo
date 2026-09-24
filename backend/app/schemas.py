@@ -72,7 +72,29 @@ class EvaluacionResultado(BaseModel):
     decision: str
 
 
+class MetaResumen(BaseModel):
+    id: int
+    texto: str = ""
+    tema: str = ""
+    idioma_objetivo: str = "en"
+    estado: str = ""
+
+
 class AppVersionResponse(BaseModel):
     versionCode: int = 1
     versionName: str = "0.1.0"
     apkUrl: str = "/static/interlingo.apk"
+
+
+class DiccionarioRequest(BaseModel):
+    palabra: str
+    idioma_objetivo: str = "en"
+    idioma_nativo: str = "es"
+    contexto: str = ""
+
+
+class DiccionarioResponse(BaseModel):
+    termino: str
+    traduccion: str
+    definicion: str = ""
+    ejemplo: str = ""

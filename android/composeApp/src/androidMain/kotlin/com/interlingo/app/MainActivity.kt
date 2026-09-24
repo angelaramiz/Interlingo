@@ -28,6 +28,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import com.interlingo.app.data.ApiClient
 import com.interlingo.app.data.LearningApi
 import com.interlingo.app.llm.LlmEngine
 import com.interlingo.app.llm.LocalEngine
@@ -35,7 +36,11 @@ import com.interlingo.app.llm.ModelDownloader
 import com.interlingo.app.update.AppVersionInfo
 import com.interlingo.app.update.UpdateManager
 import java.io.File
+import java.net.HttpURLConnection
+import java.net.URL
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 class MainActivity : ComponentActivity() {
 
@@ -46,6 +51,19 @@ class MainActivity : ComponentActivity() {
         const val MODEL_FILE = "Qwen3-4B-Instruct-2507-Q4_K_M.gguf"
     }
 
+    private suspend fun isServerReachable(serverUrl: String): Boolean =
+        withContext(Dispatchers.IO) {
+            try {
+                val conn = URL("$serverUrl/api/health").openConnection() as HttpURLConnection
+                conn.connectTimeout = 5000
+                conn.readTimeout = 5000
+                conn.connect()
+                conn.responseCode == HttpURLConnection.HTTP_OK
+            } catch (e: Exception) {
+                false
+            }
+        }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
@@ -54,6 +72,7 @@ class MainActivity : ComponentActivity() {
         setContent {
             MaterialTheme {
                 var engine by remember { mutableStateOf<LearningApi?>(null) }
+                var engineLabel by remember { mutableStateOf<String?>(null) }
                 var progress by remember { mutableStateOf<Pair<Long, Long>?>(null) }
                 var error by remember { mutableStateOf<String?>(null) }
                 var updateInfo by remember { mutableStateOf<AppVersionInfo?>(null) }
@@ -92,16 +111,24 @@ class MainActivity : ComponentActivity() {
                 }
 
                 LaunchedEffect(Unit) {
-                    try {
-                        val downloader = ModelDownloader(modelsDir)
-                        val modelFile = downloader.ensureModel(MODEL_URL, MODEL_FILE) { done, total ->
-                            progress = done to total
+                    // Backend-first: si hay servidor, las sesiones se guardan y
+                    // procesan en el backend (SQLite). Sin servidor, on-device.
+                    if (isServerReachable(serverUrl)) {
+                        engine = ApiClient(serverUrl)
+                        engineLabel = "En línea · sesiones guardadas en el servidor"
+                    } else {
+                        try {
+                            val downloader = ModelDownloader(modelsDir)
+                            val modelFile = downloader.ensureModel(MODEL_URL, MODEL_FILE) { done, total ->
+                                progress = done to total
+                            }
+                            val ok = LlmEngine.load(modelFile.absolutePath)
+                            engine = if (ok) LocalEngine() else null
+                            if (!ok) error = "No se pudo cargar el modelo en memoria"
+                            else engineLabel = "Sin conexión · modo en dispositivo"
+                        } catch (e: Exception) {
+                            error = e.message ?: "Error de descarga del modelo"
                         }
-                        val ok = LlmEngine.load(modelFile.absolutePath)
-                        engine = if (ok) LocalEngine() else null
-                        if (!ok) error = "No se pudo cargar el modelo en memoria"
-                    } catch (e: Exception) {
-                        error = e.message ?: "Error de descarga del modelo"
                     }
                 }
 
@@ -116,6 +143,7 @@ class MainActivity : ComponentActivity() {
                             api = engine!!,
                             onManualUpdate = { doCheckUpdate(manual = true) },
                             updateStatus = updateStatus,
+                            engineLabel = engineLabel,
                         )
                         else -> ModelDownloadScreen(progress)
                     }

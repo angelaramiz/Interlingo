@@ -17,6 +17,15 @@ data class MetaResponse(
 )
 
 @Serializable
+data class MetaResumen(
+    val id: Int,
+    val texto: String = "",
+    val tema: String = "",
+    val idioma_objetivo: String = "en",
+    val estado: String = "",
+)
+
+@Serializable
 data class DiagnosticoPregunta(
     val id: Int,
     val pregunta: String,
@@ -82,4 +91,20 @@ data class EvaluacionResultado(
     val ruta_idioma_score: Double = 0.0,
     val ruta_tema_score: Double = 0.0,
     val decision: String = "",
+)
+
+@Serializable
+data class DiccionarioRequest(
+    val palabra: String,
+    val idioma_objetivo: String = "en",
+    val idioma_nativo: String = "es",
+    val contexto: String = "",
+)
+
+@Serializable
+data class DiccionarioResponse(
+    val termino: String,
+    val traduccion: String,
+    val definicion: String = "",
+    val ejemplo: String = "",
 )

@@ -185,5 +185,32 @@ def ajuste(
     ]
 
 
+def diccionario(
+    palabra: str,
+    idioma_objetivo: str = "en",
+    idioma_nativo: str = "es",
+    contexto: str = "",
+) -> list[dict]:
+    contexto_txt = f"\nContexto de la lección: {contexto}" if contexto else ""
+    return [
+        {"role": "system", "content": system_base()},
+        {
+            "role": "user",
+            "content": (
+                "Traduce la palabra del idioma objetivo al idioma nativo del "
+                "usuario y añade una definición breve y un ejemplo de uso "
+                "en el idioma objetivo.\n"
+                f"Palabra: {palabra}\n"
+                f"Idioma objetivo (la palabra está en este idioma): {_lang(idioma_objetivo)}\n"
+                f"Idioma nativo (escribe la traducción en este idioma): {_lang(idioma_nativo)}"
+                f"{contexto_txt}\n\n"
+                + JSON_INSTRUCTION
+                + "\nEsquema: {\"termino\": str, \"traduccion\": str, "
+                "\"definicion\": str, \"ejemplo\": str}"
+            ),
+        },
+    ]
+
+
 def build_messages(template: list[dict], **kwargs) -> list[dict]:
     return [dict(m) for m in template]

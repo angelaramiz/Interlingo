@@ -110,6 +110,9 @@ _LEARNING_API_METHODS = {
     "generarLeccion": "Leccion",
     "generarEvaluacion": "EvaluacionResponse",
     "responderEvaluacion": "EvaluacionResultado",
+    "listarMetas": "List<MetaResumen>",
+    "obtenerNiveles": "List<PlanNivel>",
+    "buscarDefinicion": "DiccionarioResponse",
 }
 
 
@@ -136,7 +139,7 @@ def check_learning_api(root: str | Path) -> list[MobileCheckResult]:
 
 _API_ENDPOINTS = [
     "/api/meta", "/api/diagnostico", "/api/leccion",
-    "/api/evaluacion", "responder", "resultado", "generar",
+    "/api/evaluacion", "/api/diccionario", "responder", "resultado", "generar",
 ]
 
 
@@ -157,6 +160,9 @@ def check_api_client(root: str | Path) -> list[MobileCheckResult]:
     results.append(_ok("ApiClient.implements", "LearningApi" in src,
                        "class ApiClient : LearningApi" if "LearningApi" in src
                        else "does not implement LearningApi"))
+    results.append(_ok("ApiClient.timeout", "HttpTimeout" in src,
+                       "HttpTimeout instalado (sin hangs infinitos)" if "HttpTimeout" in src
+                       else "missing HttpTimeout (requests can hang forever)"))
     return results
 
 
@@ -164,9 +170,11 @@ _DTOS = [
     "MetaRequest", "MetaResponse", "DiagnosticoPregunta",
     "DiagnosticoResultado", "DiagnosticoRespuestas", "PlanNivel",
     "Plan", "VocabularioItem", "Leccion", "EvaluacionResponse",
-    "EvaluacionSubmit", "EvaluacionResultado",
+    "EvaluacionSubmit", "EvaluacionResultado", "MetaResumen",
+    "DiccionarioRequest", "DiccionarioResponse",
 ]
-_DTO_FIELDS = ["meta_id", "vocabulario", "ruta_idioma_score", "decision", "opciones"]
+_DTO_FIELDS = ["meta_id", "vocabulario", "ruta_idioma_score", "decision", "opciones",
+               "traduccion"]
 
 
 def check_dtos(root: str | Path) -> list[MobileCheckResult]:
@@ -219,6 +227,18 @@ def check_app_flow(root: str | Path) -> list[MobileCheckResult]:
     has_err = "Error" in src and ("try" in src or "catch" in src)
     results.append(_ok("App.error", has_err,
                        "try/catch -> UiState.Error" if has_err else "missing error handling"))
+    has_friendly = "mensajeError" in src
+    results.append(_ok("App.errorFriendly", has_friendly,
+                       "errores tecnicos -> mensaje amable" if has_friendly
+                       else "missing mensajeError mapping"))
+    has_resume = "Mis sesiones" in src and "listarMetas" in src
+    results.append(_ok("App.resume", has_resume,
+                       "Home lista sesiones del backend (Mis sesiones)" if has_resume
+                       else "missing backend session resume"))
+    has_dic = "buscarDefinicion" in src and ("AlertDialog" in src or "Dialog" in src)
+    results.append(_ok("App.diccionario", has_dic,
+                       "Leccion toca palabra -> buscarDefinicion + dialogo" if has_dic
+                       else "missing tappable dictionary lookup in lesson"))
     return results
 
 
@@ -250,6 +270,7 @@ def check_ondevice(root: str | Path) -> list[MobileCheckResult]:
         ("ondevice.prompt.leccion", "leccion" in prompt, "leccion"),
         ("ondevice.prompt.evaluacion", "evaluacion" in prompt, "evaluacion"),
         ("ondevice.prompt.correccion", "correccion" in prompt, "correccion"),
+        ("ondevice.prompt.diccionario", "diccionario" in prompt.lower(), "diccionario"),
         ("ondevice.prompt.ajuste", "ajuste" in prompt, "ajuste"),
         ("ondevice.prompt.extractJson", "extractJson" in prompt, "extractJson"),
         ("ondevice.prompt.lang", "English" in prompt, "English languageNames"),
@@ -262,6 +283,9 @@ def check_ondevice(root: str | Path) -> list[MobileCheckResult]:
         ("ondevice.model.url",
          "huggingface" in main.lower() or "gguf" in main.lower(),
          "huggingface GGUF Qwen3-4B-Instruct-2507-Q4_K_M.gguf"),
+        ("ondevice.engine.backendFirst", "ApiClient(" in main,
+         "MainActivity backend-first (ApiClient si hay servidor)" if "ApiClient(" in main
+         else "MainActivity sin ApiClient: sesiones nunca llegan al backend"),
     ]
     results = [_ok(n, ok_, d if ok_ else f"missing {d}") for n, ok_, d in checks]
     so_files = [p for p in base.rglob("*.so") if not _skipped(p)]
@@ -272,8 +296,9 @@ def check_ondevice(root: str | Path) -> list[MobileCheckResult]:
     return results
 
 
-_BACKEND_ROUTES = ["/api/meta", "/api/diagnostico", "/api/leccion", "/api/evaluacion"]
-_PROMPT_KWS = ["diagnostico", "plan", "leccion", "evaluacion", "ajuste"]
+_BACKEND_ROUTES = ["/api/meta", "/api/metas", "/api/diagnostico", "/api/leccion", "/api/evaluacion",
+                   "/api/diccionario"]
+_PROMPT_KWS = ["diagnostico", "plan", "leccion", "evaluacion", "ajuste", "diccionario"]
 
 
 def check_backend_contract(root: str | Path) -> list[MobileCheckResult]:

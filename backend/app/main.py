@@ -11,13 +11,17 @@ from .schemas import (
     AppVersionResponse,
     DiagnosticoRespuestas,
     DiagnosticoResultado,
+    DiccionarioRequest,
+    DiccionarioResponse,
     EvaluacionResultado,
     EvaluacionSubmit,
     Leccion,
     MetaCreate,
+    MetaResumen,
     Plan,
 )
 from .services.adjust import ajustar_nivel
+from .services.dictionary import traducir_palabra
 from .services.diagnostic import (
     generar_diagnostico,
     interpretar_meta,
@@ -95,10 +99,34 @@ def resultado_diagnostico(
     return {"niveles": plan}
 
 
+@app.get("/api/metas", response_model=list[MetaResumen])
+def listar_metas(limit: int = Query(default=20, ge=1, le=100),
+                 db: Session = Depends(get_db)):
+    metas = (db.query(Meta).order_by(Meta.id.desc()).limit(limit).all())
+    return [MetaResumen(id=m.id, texto=m.texto or "", tema=m.tema or "",
+                        idioma_objetivo=m.idioma_objetivo or "en",
+                        estado=m.estado or "") for m in metas]
+
+
 @app.get("/api/meta/{meta_id}/niveles")
 def niveles(meta_id: int, db: Session = Depends(get_db)):
     return [{"id": n.id, "numero": n.numero, "objetivo": n.objetivo, "estado": n.estado}
             for n in listar_niveles(db, meta_id)]
+
+
+@app.post("/api/diccionario", response_model=DiccionarioResponse)
+def diccionario_lookup(payload: DiccionarioRequest):
+    try:
+        return traducir_palabra(
+            payload.palabra,
+            payload.idioma_objetivo,
+            payload.idioma_nativo,
+            payload.contexto,
+        )
+    except ValueError as e:
+        raise HTTPException(400, str(e))
+    except Exception:
+        raise HTTPException(502, "No se pudo traducir la palabra")
 
 
 @app.post("/api/leccion/{nivel_id}", response_model=Leccion)

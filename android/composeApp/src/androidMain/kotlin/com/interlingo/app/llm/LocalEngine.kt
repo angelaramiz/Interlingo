@@ -3,10 +3,12 @@ package com.interlingo.app.llm
 import com.interlingo.app.data.LearningApi
 import com.interlingo.app.model.DiagnosticoPregunta
 import com.interlingo.app.model.DiagnosticoResultado
+import com.interlingo.app.model.DiccionarioResponse
 import com.interlingo.app.model.EvaluacionResponse
 import com.interlingo.app.model.EvaluacionResultado
 import com.interlingo.app.model.Leccion
 import com.interlingo.app.model.MetaResponse
+import com.interlingo.app.model.MetaResumen
 import com.interlingo.app.model.Plan
 import com.interlingo.app.model.PlanNivel
 import kotlinx.coroutines.Dispatchers
@@ -123,6 +125,28 @@ class LocalEngine : LearningApi {
             ruta_idioma_score = ri,
             ruta_tema_score = rt,
             decision = aj.decision,
+        )
+    }
+
+    override suspend fun listarMetas(): List<MetaResumen> =
+        metaInfo.map { (id, meta) ->
+            MetaResumen(id = id, tema = meta.tema, idioma_objetivo = meta.idioma)
+        }.sortedByDescending { it.id }
+
+    override suspend fun obtenerNiveles(metaId: Int): List<PlanNivel> =
+        nivelInfo.values.sortedBy { it.numero }
+
+    override suspend fun buscarDefinicion(
+        palabra: String,
+        idiomaObjetivo: String,
+        idiomaNativo: String,
+        contexto: String,
+    ): DiccionarioResponse {
+        val limpia = palabra.trim()
+        require(limpia.isNotEmpty()) { "palabra vacía" }
+        require(limpia.length <= 100) { "palabra demasiado larga" }
+        return completeJson(
+            PromptEngine.diccionarioUser(limpia, idiomaObjetivo, idiomaNativo, contexto)
         )
     }
 

@@ -316,6 +316,73 @@ class TestOta:
         assert any(not r.passed for r in check_ota(tmp_path))
 
 
+# ---------- sesion backend (persistencia + sin hangs) ----------
+
+class TestSesionBackend:
+    def test_api_client_timeout(self):
+        results = {r.name: r for r in check_api_client(ROOT)}
+        assert results["ApiClient.timeout"].passed
+
+    def test_learning_api_listar_metas(self):
+        results = {r.name: r for r in check_learning_api(ROOT)}
+        assert results["LearningApi.listarMetas"].passed
+
+    def test_learning_api_obtener_niveles(self):
+        results = {r.name: r for r in check_learning_api(ROOT)}
+        assert results["LearningApi.obtenerNiveles"].passed
+
+    def test_dtos_meta_resumen(self):
+        results = {r.name: r for r in check_dtos(ROOT)}
+        assert results["Dtos.MetaResumen"].passed
+
+    def test_app_resume(self):
+        results = {r.name: r for r in check_app_flow(ROOT)}
+        assert results["App.resume"].passed
+
+    def test_app_friendly_error(self):
+        results = {r.name: r for r in check_app_flow(ROOT)}
+        assert results["App.errorFriendly"].passed
+
+    def test_mainactivity_backend_first(self):
+        results = {r.name: r for r in check_ondevice(ROOT)}
+        assert results["ondevice.engine.backendFirst"].passed
+
+    def test_backend_metas_route(self):
+        results = {r.name: r for r in check_backend_contract(ROOT)}
+        assert results["contract.route:/api/metas"].passed
+
+
+# ---------- diccionario integrado (clic en palabra → traducción) ----------
+
+class TestDiccionarioContract:
+    def test_learning_api_buscar_definicion(self):
+        results = {r.name: r for r in check_learning_api(ROOT)}
+        assert results["LearningApi.buscarDefinicion"].passed
+
+    def test_api_client_diccionario_endpoint(self):
+        results = {r.name: r for r in check_api_client(ROOT)}
+        assert results["ApiClient.endpoint:/api/diccionario"].passed
+
+    def test_dtos_diccionario(self):
+        results = {r.name: r for r in check_dtos(ROOT)}
+        assert results["Dtos.DiccionarioRequest"].passed
+        assert results["Dtos.DiccionarioResponse"].passed
+
+    def test_backend_diccionario_route(self):
+        results = {r.name: r for r in check_backend_contract(ROOT)}
+        assert results["contract.route:/api/diccionario"].passed
+
+    def test_prompt_diccionario_parity(self):
+        results = {r.name: r for r in check_backend_contract(ROOT)}
+        assert results["contract.prompt:diccionario"].passed
+        ondevice = {r.name: r for r in check_ondevice(ROOT)}
+        assert ondevice["ondevice.prompt.diccionario"].passed
+
+    def test_app_diccionario_lookup(self):
+        results = {r.name: r for r in check_app_flow(ROOT)}
+        assert results["App.diccionario"].passed
+
+
 # ---------- full report ----------
 
 class TestVerifyMobileApp:

@@ -114,6 +114,24 @@ object PromptEngine {
         "\"simplificar\" | \"profundizar\", \"justificacion\": str, " +
         "\"nivel_cefr_ajustado\": str}"
 
+    fun diccionarioUser(
+        palabra: String,
+        idiomaObjetivo: String = "en",
+        idiomaNativo: String = "es",
+        contexto: String = "",
+    ): String {
+        val contextoTxt = if (contexto.isNotBlank()) "\nContexto de la lección: $contexto" else ""
+        return "Traduce la palabra del idioma objetivo al idioma nativo del " +
+        "usuario y añade una definición breve y un ejemplo de uso " +
+        "en el idioma objetivo.\n" +
+        "Palabra: $palabra\n" +
+        "Idioma objetivo (la palabra está en este idioma): ${lang(idiomaObjetivo)}\n" +
+        "Idioma nativo (escribe la traducción en este idioma): ${lang(idiomaNativo)}" +
+        "$contextoTxt\n\n" + jsonInstruction +
+        "\nEsquema: {\"termino\": str, \"traduccion\": str, " +
+        "\"definicion\": str, \"ejemplo\": str}"
+    }
+
     fun extractJson(raw: String): String {
         val cleaned = raw.trim()
         val start = cleaned.indexOf('{')

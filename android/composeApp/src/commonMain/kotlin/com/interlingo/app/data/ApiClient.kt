@@ -3,15 +3,20 @@ package com.interlingo.app.data
 import com.interlingo.app.model.DiagnosticoPregunta
 import com.interlingo.app.model.DiagnosticoResultado
 import com.interlingo.app.model.DiagnosticoRespuestas
+import com.interlingo.app.model.DiccionarioRequest
+import com.interlingo.app.model.DiccionarioResponse
 import com.interlingo.app.model.EvaluacionResponse
 import com.interlingo.app.model.EvaluacionResultado
 import com.interlingo.app.model.EvaluacionSubmit
 import com.interlingo.app.model.Leccion
 import com.interlingo.app.model.MetaRequest
 import com.interlingo.app.model.MetaResponse
+import com.interlingo.app.model.MetaResumen
 import com.interlingo.app.model.Plan
+import com.interlingo.app.model.PlanNivel
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
+import io.ktor.client.plugins.HttpTimeout
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.request.get
 import io.ktor.client.request.post
@@ -32,6 +37,11 @@ class ApiClient(
                     isLenient = true
                 }
             )
+        }
+        install(HttpTimeout) {
+            connectTimeoutMillis = 15000
+            socketTimeoutMillis = 120000
+            requestTimeoutMillis = 300000
         }
     }
 
@@ -60,5 +70,29 @@ class ApiClient(
         client.post("$baseUrl/api/evaluacion/$evaluacionId/responder") {
             contentType(ContentType.Application.Json)
             setBody(EvaluacionSubmit(respuesta = respuesta))
+        }.body()
+
+    override suspend fun listarMetas(): List<MetaResumen> =
+        client.get("$baseUrl/api/metas").body()
+
+    override suspend fun obtenerNiveles(metaId: Int): List<PlanNivel> =
+        client.get("$baseUrl/api/meta/$metaId/niveles").body()
+
+    override suspend fun buscarDefinicion(
+        palabra: String,
+        idiomaObjetivo: String,
+        idiomaNativo: String,
+        contexto: String,
+    ): DiccionarioResponse =
+        client.post("$baseUrl/api/diccionario") {
+            contentType(ContentType.Application.Json)
+            setBody(
+                DiccionarioRequest(
+                    palabra = palabra,
+                    idioma_objetivo = idiomaObjetivo,
+                    idioma_nativo = idiomaNativo,
+                    contexto = contexto,
+                )
+            )
         }.body()
 }

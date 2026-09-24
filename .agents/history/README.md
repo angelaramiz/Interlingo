@@ -57,3 +57,27 @@
 - Actualizado `AndroidManifest.xml` con `android:icon` y `android:roundIcon`.
 - Verificación TDD aprobada (70/70 tests OK en pytest).
 - Ejecutado pipeline `release.ps1`: build release firmado (75.3 MB), publicación de release v0.2.3 en GitHub Releases, actualización de `version.json` (versionCode 5), commit, push y verificación en vivo contra `https://interlingo.onrender.com/api/app-version`.
+
+## 2026-09-23 � Sesiones en backend + fin del hang (TDD + emulador)
+- Causa del 'Generando contenido...' infinito: MainActivity usaba siempre LocalEngine (estado solo en memoria; al morir el proceso volvia a Home sin nada) y sin timeouts. ApiClient tampoco tenia timeout.
+- Fix backend-first: MainActivity prueba GET /api/health (5s); si hay servidor usa ApiClient (sesiones en SQLite), si no LocalEngine. Etiqueta 'En linea' / 'Sin conexion' en Home.
+- Nuevo GET /api/metas (MetaResumen: id/texto/tema/idioma/estado, ?limit, recientes primero) + LearningApi.listarMetas/obtenerNiveles + Home 'Mis sesiones' con Continuar (a Plan, o a Diagnostico si aun sin niveles).
+- ApiClient con HttpTimeout (connect 15s / socket 120s / request 300s): Loading siempre resuelve. App.kt mapea errores a mensaje amable (mensajeError).
+- TDD: tests/test_metas.py (TestClient + SQLite memoria + chat_json mock, 4 tests) + TestSesionBackend (8 tests) + checks nuevos en mobile_verify.py. RED 20 fallos -> GREEN 82/82.
+- QA en emulador (Medium_Phone_API_35, adb directo segun skill emulador-android adaptada): backend en puerto 8001 (el 8000 lo ocupa otro proyecto), APK debug con -PserverUrl=http://10.0.2.2:8001, sesion QA sembrada y luego borrada. Evidencia: Home 'En linea' + 'Mis sesiones' (ETL/plan) -> Continuar -> Plan con 2 niveles; 'Empezar nivel' sin IA -> error amable finito (no hang).
+- Pendiente: E2E de generacion real con IA (falta OPENROUTER_API_KEY en backend/.env o re-descargar GGUF a D:/models); probar OTA en dispositivo fisico.
+
+## 2026-09-24 — Diccionario integrado, TDD estricto (RED→GREEN→REFACTOR)
+- Alcance: tap en cualquier palabra del texto de la lección → traducción sin salir (cierra el hueco UX "diccionario integrado" del MVP).
+- Backend: `POST /api/diccionario` {palabra, idioma_objetivo, idioma_nativo, contexto} → {termino, traduccion, definicion, ejemplo}. `app/services/dictionary.py` (valida/normaliza: vacía→400, >100 chars→400, fallo IA→502; usa el dispatcher `chat_json`, nunca openrouter/local directo) + `diccionario()` en `app/ai/prompts.py` (nombres completos de idioma, esquema JSON) + `DiccionarioRequest/Response` en schemas + ruta en `main.py`.
+- Móvil: `buscarDefinicion` en `LearningApi`/`ApiClient` (POST /api/diccionario)/`LocalEngine` (vía LLM on-device) + `DiccionarioRequest/Response` en Dtos + `diccionarioUser` en `PromptEngine` (paridad con backend) + `LeccionScreen` con palabras tocables (FlowRow) y `AlertDialog` (traducción/definición/ejemplo, "Buscando…" y error amable). `UiState.Plan/Leccion/Evaluacion/Resultado` llevan `idiomaObjetivo` (default "en") para traducir en la dirección correcta.
+- TDD: RED 19 fallos (sin implementación) → GREEN 19/19 `tests/test_diccionario.py` (happy path, normalización, vacío/nulo/largo/unicode, defaults, dispatcher, ruta 200/400/422/502) + RED→GREEN de 8 checks nuevos en `mobile_verify.py` + 6 tests `TestDiccionarioContract` (asserts sobre flags `passed`, no sobre detalles con keyword).
+- Cobertura: `dictionary.py` 100%, `schemas.py` 100%, `diccionario()` ambas ramas (con/sin contexto); el resto de misses en prompts.py/main.py son builders/rutas preexistentes.
+- Gate: 107/107 pytest (19 diccionario + 4 metas + 6 openrouter + 78 mobile_verify). Nota: `test_mobile_verify.py` completo tarda ~130 s (rglob sobre el repo por check); los errores `WinError 5/32` vistos al correrlo son del entorno (limpieza de tmp de pytest / fichero de salida dentro del basetemp), no del código — con `--basetemp` fuera del árbol sale 78 passed, exit 0.
+- Pendiente: compilar APK debug para validar el Kotlin nuevo (`assembleDebug` no se corrió en esta sesión); QA en emulador del diálogo de diccionario; probar OTA en dispositivo físico.
+
+## 2026-09-24 � QA release v0.2.3 en emulador
+- 'Package conflicts' al actualizar sobre debug: esperado (firma debug vs release). Resuelto con uninstall + install del release: instala y corre.
+- El release v0.2.3 (code 5, construido el 22) NO trae backend-first (cambio del 23-24, sin commitear): en emulador descarga el GGUF directo. Descarga detenida con force-stop.
+- Produccion verificada arriba: /api/health ok, /api/app-version -> v0.2.3 code 5.
+- Siguiente paso: release v0.2.4 (code 6) via release.ps1 para llevar backend-first + sesiones + diccionario al telefono.

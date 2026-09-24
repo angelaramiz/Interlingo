@@ -1,6 +1,6 @@
 # AGENTS.md — Interlingo
 
-Language-learning-by-topic app. Two halves: `backend/` (FastAPI + SQLite, AI content engine) and `android/` (Kotlin Multiplatform + Compose, Android-first, on-device inference via bundled llama.cpp). They share one contract: `LearningApi` in `android/.../commonMain/.../data/LearningApi.kt` mirrors the 7 backend routes.
+Language-learning-by-topic app. Two halves: `backend/` (FastAPI + SQLite, AI content engine) and `android/` (Kotlin Multiplatform + Compose, Android-first, on-device inference via bundled llama.cpp). They share one contract: `LearningApi` in `android/.../commonMain/.../data/LearningApi.kt` mirrors the 7 learning routes (`/api/meta`, `/api/diagnostico…`, `/api/meta/{id}/niveles`, `/api/leccion…`, `/api/evaluacion…`) plus session resume (`GET /api/metas` → `listarMetas`, existing niveles route → `obtenerNiveles`); `/api/health` and `/api/app-version` are extra.
 
 ## Layout
 
@@ -16,9 +16,10 @@ Language-learning-by-topic app. Two halves: `backend/` (FastAPI + SQLite, AI con
 cd backend
 .\.venv\Scripts\python.exe -m pip install -r requirements.txt   # venv lives at backend/.venv
 .\.venv\Scripts\python.exe -m uvicorn app.main:app --reload     # NOT uvicorn.exe (dies instantly on this box)
+.\.venv\Scripts\python.exe -m pytest tests/ -q                  # TDD gate: both suites must stay green
 ```
 
-- Config is `backend/.env` (machine-local, gitignored): `AI_PROVIDER=local|openrouter`, `LOCAL_MODEL_PATH`, `OPENROUTER_MODEL`, `DATABASE_URL`. Backend reads `.env` from its own cwd — run every command from `backend/`.
+- Config is `backend/.env` (machine-local, gitignored): `AI_PROVIDER=local|openrouter`, `LOCAL_MODEL_PATH`, `OPENROUTER_MODEL`, `DATABASE_URL`. Backend reads `.env` from its own cwd — run every command from `backend/`. `main.py` also mounts `StaticFiles(directory="static")` with a RELATIVE path, so launching from anywhere else breaks `/static` + `version.json`.
 - Services call `chat_json` from `app.ai.inference` (the `AI_PROVIDER` dispatcher). Never call `openrouter`/`local` directly from services.
 - `OpenRouterClient` retries (backoff) on 429/5xx/timeouts, falls through `openrouter_fallback_models` (comma-separated env) on 404, reuses one `httpx.Client`, and parses JSON tolerantly. New tunables: `OPENROUTER_TIMEOUT`, `OPENROUTER_MAX_RETRIES`. Unit tests: `backend/tests/test_openrouter_client.py` (mocked transport).
 - Prompt template functions live in `app/ai/prompts.py`. Service functions must NOT reuse a template name — alias on import (`interpretar_meta as interpretar_meta_prompt`); a same-name call recurses instead of hitting the template (this bug already happened once).
@@ -36,7 +37,9 @@ cd android
 # APK: android/composeApp/build/outputs/apk/debug/composeApp-debug.apk
 ```
 - Versions (all in `android/gradle/libs.versions.toml`): Gradle 8.9, AGP 8.6.0, Kotlin 2.0.21, Compose Multiplatform 1.7.3. `applicationId`/namespace `com.interlingo.app`, minSdk 26, compileSdk/targetSdk 35.
-- `abiFilters = arm64-v8a` only. Consequence: the stock x86_64 emulator CANNOT load the native libs — test on a physical arm64 device.
+- `abiFilters = arm64-v8a` only. Consequence: the stock x86_64 emulator CANNOT load the native libs — test on a physical arm64 device. Emulator QA works only via backend-first (`MainActivity` probes `GET /api/health` with 5 s timeout → `ApiClient(serverUrl)` when reachable, else model download + `LocalEngine`); the emulator therefore never touches native code when the backend is up.
+- `ApiClient` installs Ktor `HttpTimeout` (connect 15 s / socket 120 s / request 300 s). Never remove it: without timeouts a slow server leaves the UI stuck on "Generando contenido…" forever. App errors go through `mensajeError()` in `App.kt` (raw Ktor dumps must never reach the user).
+- Emulator QA (adapted from the `emulador-android` skill, adb direct, AVD `Medium_Phone_API_35`, pkg `com.interlingo.app`): host port **8000 is taken by another project's server** — run this backend on 8001 and build debug with `"-PserverUrl=http://10.0.2.2:8001"`. Seed resume sessions with direct DB inserts (no AI needed), then delete the rows after.
 - JNI names are coupled: Kotlin `com.interlingo.app.llm.LlmEngine.native*` ↔ C `Java_com_interlingo_app_llm_LlmEngine_native*` in `D:\build\bridge\bridge.cpp`. Renaming the package/class breaks the bridge silently at runtime (`UnsatisfiedLinkError`).
 - If the LLM feature is ever removed, remove ALL native traces together (`jniLibs/`, `externalNativeBuild` if added, `System.loadLibrary`) — leftovers break the build even when unused.
 - On-device prompts are a port of `backend/app/ai/prompts.py` (`PromptEngine.kt`). Change a template in one place, change it in both.
@@ -47,7 +50,8 @@ cd android
 ## Releases & OTA (`release.ps1` at root)
 
 ```powershell
-.\release.ps1 -VersionCode 2 -VersionName "0.2.0" -ServerUrl "https://<tu-api>.onrender.com" -KeystorePassword "..." -KeyPassword "..."
+.\release.ps1 -VersionCode 6 -VersionName "0.2.4" -ServerUrl "https://<tu-api>.onrender.com" -KeystorePassword "..." -KeyPassword "..."
+# current production: versionCode 5 / v0.2.3 — bump both every release
 ```
 
 - Pipeline: `:composeApp:assembleRelease` (signed) → upload APK to GitHub Release → write `version.json` + commit + push → POST Render deploy hook → poll `/api/app-version` until the new `versionCode` answers. (The SQLite upsert via `backend/scripts/set_version.py` still runs, but only matters for local dev — production reads `version.json`.)
