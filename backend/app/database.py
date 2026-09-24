@@ -1,5 +1,5 @@
 import socket
-from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
+from urllib.parse import parse_qsl, quote, urlencode, urlsplit, urlunsplit
 
 from sqlalchemy import create_engine
 from sqlalchemy.orm import declarative_base, sessionmaker
@@ -26,6 +26,14 @@ def make_engine(database_url: str):
     database_url = database_url.strip().strip("\"'")
     if database_url.startswith("sqlite"):
         return create_engine(database_url, connect_args={"check_same_thread": False})
+    # La pass puede traer @ : / ? # (Supabase las genera): el ULTIMO @
+    # separa auth/host y el PRIMER : separa user/pass; se re-codifica la pass.
+    head, sep, tail = database_url.rpartition("@")
+    if sep and "://" in head:
+        scheme, _, auth = head.partition("://")
+        user, colon, password = auth.partition(":")
+        if colon:
+            database_url = f"{scheme}://{user}:{quote(password, safe='')}@{tail}"
     parts = urlsplit(database_url)
     if parts.hostname and parts.hostname.endswith("supabase.co"):
         query = dict(parse_qsl(parts.query))

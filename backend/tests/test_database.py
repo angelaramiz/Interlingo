@@ -22,6 +22,13 @@ def test_url_strips_quotes_and_spaces():
     assert eng.url.host == "db.xxx.supabase.co"
 
 
+def test_password_with_special_chars_survives():
+    eng = make_engine("postgresql://postgres:p@ss:w/rd?x#1@db.xxx.supabase.co:5432/postgres")
+    assert eng.url.host == "db.xxx.supabase.co"
+    assert eng.url.password == "p@ss:w/rd?x#1"
+    assert eng.url.username == "postgres"
+
+
 def test_postgres_url_builds_without_connecting():
     eng = make_engine("postgresql://user:pass@db.xxx.supabase.co:5432/postgres")
     assert eng.url.drivername == "postgresql"
