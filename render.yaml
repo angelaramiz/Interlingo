@@ -10,7 +10,9 @@ services:
         value: 3.12.6
       - key: AI_PROVIDER
         value: openrouter
+      - key: OPENROUTER_BASE_URL
+        value: https://api.orcarouter.ai/v1/chat/completions
       - key: OPENROUTER_MODEL
-        value: openai/gpt-4o-mini
+        value: z-ai/glm-5.3-flash-free
       - key: OPENROUTER_API_KEY
         sync: false

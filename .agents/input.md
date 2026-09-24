@@ -13,7 +13,7 @@
 ## Crear servicio en Render (pendiente del desarrollador)
 - [ ] En render.com → New + → Web Service → conectar repo `angelaramiz/Interlingo`
 - [ ] `render.yaml` ya define todo: Root Directory `backend`, Build `pip install -r requirements.txt`, Start `uvicorn app.main:app --host 0.0.0.0 --port $PORT`
-- [ ] Variables de entorno en el dashboard: `AI_PROVIDER=openrouter`, `OPENROUTER_MODEL=openai/gpt-4o-mini`, `OPENROUTER_API_KEY=<tu clave>`
+- [ ] Variables de entorno en el dashboard (OrcaRouter, modelo gratis): `OPENROUTER_BASE_URL=https://api.orcarouter.ai/v1/chat/completions`, `OPENROUTER_MODEL=z-ai/glm-5.3-flash-free`, `OPENROUTER_API_KEY=<tu clave sk-orca-...>` (el servicio manual ignora render.yaml: cambiarlas en el dashboard; guardarlas redispara el deploy)
 - [ ] URL resultante (ej: `https://interlingo-api.onrender.com`): pasarla como `-ServerUrl` en el próximo `release.ps1` para que la app apunte al servidor real
 - [ ] ¿Niveles de idioma basados en CEFR (A1-C2)?
 - [ ] ¿Niveles de tema por complejidad técnica propia?

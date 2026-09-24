@@ -87,6 +87,22 @@ class TestJsonRepair:
         assert client.chat_json(MSGS) == {"a": 3}
 
 
+class TestBaseUrl:
+    def test_posts_to_configured_base_url(self):
+        client, calls = _sequence_client(
+            [_ok_response('{"a": 1}')],
+            base_url="https://api.orcarouter.ai/v1/chat/completions",
+        )
+        assert client.chat_json(MSGS) == {"a": 1}
+        assert str(calls[0].url) == "https://api.orcarouter.ai/v1/chat/completions"
+
+    def test_defaults_to_settings_base_url(self):
+        from app.config import settings
+        client, calls = _sequence_client([_ok_response('{"a": 1}')])
+        assert client.chat_json(MSGS) == {"a": 1}
+        assert str(calls[0].url) == settings.openrouter_base_url
+
+
 class TestClientReuse:
     def test_reuses_single_http_client(self):
         created = []

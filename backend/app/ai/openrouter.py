@@ -7,8 +7,6 @@ import httpx
 
 from ..config import settings
 
-OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions"
-
 log = logging.getLogger("interlingo.ai")
 
 _RETRYABLE_STATUS = {408, 425, 429, 500, 502, 503, 504}
@@ -35,8 +33,10 @@ class OpenRouterClient:
         max_retries: int | None = None,
         backoff_base: float = 1.0,
         transport: httpx.BaseTransport | None = None,
+        base_url: str | None = None,
     ) -> None:
         self.api_key = api_key if api_key is not None else settings.openrouter_api_key
+        self.base_url = base_url or settings.openrouter_base_url
         self.model = model or settings.openrouter_model
         if fallback_models is None:
             raw = settings.openrouter_fallback_models.strip()
@@ -60,7 +60,7 @@ class OpenRouterClient:
 
     def _request(self, model: str, messages: list[dict]) -> dict:
         resp = self._get_client().post(
-            OPENROUTER_URL,
+            self.base_url,
             headers={
                 "Authorization": f"Bearer {self.api_key}",
                 "Content-Type": "application/json",

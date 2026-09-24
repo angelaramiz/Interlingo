@@ -2,8 +2,10 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
+    # Endpoint OpenAI-compatible (OpenRouter u OrcaRouter)
+    openrouter_base_url: str = "https://api.orcarouter.ai/v1/chat/completions"
     openrouter_api_key: str = ""
-    openrouter_model: str = "openai/gpt-4o-mini"
+    openrouter_model: str = "z-ai/glm-5.3-flash-free"
     openrouter_fallback_models: str = ""
     openrouter_timeout: float = 60.0
     openrouter_max_retries: int = 3
